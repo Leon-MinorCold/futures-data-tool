@@ -13,7 +13,7 @@ const isDev = process.env.NODE_ENV === 'development';
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 800,
-    height: 600,
+    height: 800,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'), // 预加载脚本
       nodeIntegration: false,
