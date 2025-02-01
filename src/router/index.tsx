@@ -12,9 +12,11 @@ import {
   Navigate,
   Route,
 } from 'react-router'
+import OverviewPage from '@/pages/dashboard/overview/page'
+import ErrorPage from '@/components/error-page'
 
 export const routes = createRoutesFromElements(
-  <Route element={<Providers />}>
+  <Route element={<Providers />} errorElement={<ErrorPage />}>
     <Route element={<HomeLayout />}>
       <Route path="/" element={<Navigate replace to="/dashboard" />} />
     </Route>
@@ -30,11 +32,12 @@ export const routes = createRoutesFromElements(
     <Route path="/dashboard">
       <Route element={<AuthGuard />}>
         <Route element={<Layout />}>
+          <Route path="overview" element={<OverviewPage />} />
           <Route path="user-management" element={<UserManagementPage />} />
 
           <Route
             index
-            element={<Navigate replace to="/dashboard/user-management" />}
+            element={<Navigate replace to="/dashboard/overview" />}
           />
         </Route>
       </Route>
