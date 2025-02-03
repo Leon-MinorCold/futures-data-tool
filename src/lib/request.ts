@@ -3,7 +3,7 @@ import createAuthRefreshInterceptor from 'axios-auth-refresh'
 import { toast } from 'sonner'
 import { redirect } from 'react-router'
 import { queryClient } from '@/lib/provider'
-import { ResponseCode } from '@/types/request'
+import { HttpCode, ResponseCode } from '@/types/request'
 import { refreshToken } from '@/services/auth/refresh'
 
 interface ApiResponse<T> {
@@ -13,8 +13,6 @@ interface ApiResponse<T> {
 }
 
 const isDev = process.env.NODE_ENV === 'development'
-
-console.log('axios', { isDev })
 
 const baseURL = isDev
   ? 'http://localhost:3000/api'
@@ -40,8 +38,14 @@ request.interceptors.response.use(
 
     console.log('axios error', error)
     const message = error.response?.data.message
+    const status = error.status
 
-    if (message) {
+    const isUnauthorizedError = [
+      HttpCode.UNAUTHORIZED,
+      HttpCode.FORBIDDEN,
+    ].includes(status)
+
+    if (message && !isUnauthorizedError) {
       toast.error('Oops, the server returned an error.', {
         description: message,
       })
@@ -82,7 +86,10 @@ const axiosForRefresh = axios.create({
 })
 
 // Interceptor to handle expired access token errors
-const handleAuthError = () => refreshToken(axiosForRefresh)
+const handleAuthError = () => {
+  console.log('HandleAuthError:')
+  return refreshToken(axiosForRefresh)
+}
 
 // Interceptor to handle expired refresh token errors
 const handleRefreshError = async () => {
@@ -92,7 +99,7 @@ const handleRefreshError = async () => {
 }
 
 // Intercept responses to check for 401 and 403 errors, refresh token and retry the request
-createAuthRefreshInterceptor(axios, handleAuthError, {
+createAuthRefreshInterceptor(request, handleAuthError, {
   statusCodes: [401, 403],
 })
 createAuthRefreshInterceptor(axiosForRefresh, handleRefreshError)
