@@ -14,6 +14,7 @@ import {
 } from 'react-router'
 import OverviewPage from '@/pages/dashboard/overview/page'
 import ErrorPage from '@/components/error-page'
+import FuturesPage from '@/pages/dashboard/futures/page'
 
 export const routes = createRoutesFromElements(
   <Route element={<Providers />} errorElement={<ErrorPage />}>
@@ -33,7 +34,9 @@ export const routes = createRoutesFromElements(
       <Route element={<AuthGuard />}>
         <Route element={<Layout />}>
           <Route path="overview" element={<OverviewPage />} />
-          <Route path="user-management" element={<UserManagementPage />} />
+          <Route path="users" element={<UserManagementPage />} />
+
+          <Route path="futures" element={<FuturesPage />} />
 
           <Route
             index

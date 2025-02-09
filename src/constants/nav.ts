@@ -22,9 +22,15 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    title: 'User Management',
+    title: 'Users',
     icon: 'user',
-    url: '/dashboard/user-management',
+    url: '/dashboard/users',
+    isActive: false,
+  },
+  {
+    title: 'Futures',
+    icon: 'employee',
+    url: '/dashboard/futures',
     isActive: false,
   },
 ]
