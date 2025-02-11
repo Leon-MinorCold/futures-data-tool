@@ -1,2 +1,2 @@
-export * from './queryKey'
+export * from './query-keys'
 export * from './nav'

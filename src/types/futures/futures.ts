@@ -1,4 +1,4 @@
-import { dateSchema, createZodDto } from '../common'
+import { dateSchema, createZodDto, paginationSchema } from '../common'
 import { z } from 'zod'
 
 export const futuresSchema = z
@@ -35,8 +35,13 @@ export const createFuturesSchema = futuresSchema.pick({
   contractUnitType: true,
 })
 
-export const updateFuturesSchema = futuresSchema.partial()
+export const updateFuturesSchema = z
+  .object({ id: z.string() })
+  .merge(futuresSchema.partial().omit({ id: true }))
+
+export const getAllFuturesSchema = z.object({}).merge(paginationSchema)
 
 export class Futures extends createZodDto(futuresSchema) {}
 export class CreateFuturesDto extends createZodDto(createFuturesSchema) {}
 export class UpdateFuturesDto extends createZodDto(updateFuturesSchema) {}
+export class getAllFuturesDto extends createZodDto(getAllFuturesSchema) {}

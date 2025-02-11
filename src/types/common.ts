@@ -33,6 +33,26 @@ export function isZodDto(metatype: any): metatype is ZodDto<unknown> {
 }
 
 export const dateSchema = z.object({
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.number({
+    required_error: '更新时间不能为空',
+    invalid_type_error: '无效的日期格式',
+  }),
+  updatedAt: z.number({
+    required_error: '更新时间不能为空',
+    invalid_type_error: '无效的日期格式',
+  }),
 })
+
+export const paginationSchema = z.object({
+  page: z.number().positive().default(1),
+  pageSize: z.number().positive().default(10),
+})
+
+export interface PaginatedResponse<T> {
+  list: T[]
+  pagination: {
+    page: number
+    pageSize: number
+    total: number
+  }
+}

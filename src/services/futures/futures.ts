@@ -1,27 +1,41 @@
+import { futuresKeys } from '@/constants'
 import { request } from '@/lib/request'
-import { Futures } from '@/types/futures/futures'
+import { PaginatedResponse } from '@/types/common'
+import {
+  Futures,
+  futuresSchema,
+  getAllFuturesDto,
+} from '@/types/futures/futures'
 import { useQuery } from '@tanstack/react-query'
+import { futuresKeys as queryKeys } from '@/constants/query-keys'
 
 // Get all futures aata
-export const getFutures = (): Promise<Futures[]> => request.get('/futures')
-
-export const useFutures = () => {
-  const {
-    error,
-    isPending: loading,
-    data: futures,
-    refetch,
-  } = useQuery({
-    queryKey: ['futures'],
-    queryFn: getFutures,
+export const getFutures = (
+  params: getAllFuturesDto
+): Promise<PaginatedResponse<Futures>> =>
+  request.get('/futures', {
+    params,
   })
 
-  return {
-    futures,
-    loading,
+export const useFutures = (filters: getAllFuturesDto) => {
+  const {
+    data,
+    isPending: loading,
     error,
     refetch,
-  }
+  } = useQuery({
+    queryKey: queryKeys.list(filters),
+    queryFn: async () => {
+      const { list, pagination } = await getFutures(filters)
+      const _list = list.map((item) => futuresSchema.parse(item))
+      return {
+        list: _list,
+        pagination,
+      }
+    },
+  })
+
+  return { data, loading, error, refetch }
 }
 
 // get a futures data
@@ -34,7 +48,7 @@ export const useFuturesData = (id: string) => {
     isPending: loading,
     data: futuresData,
   } = useQuery({
-    queryKey: ['futures', id],
+    queryKey: futuresKeys.detail(id),
     queryFn: () => getFuturesData(id),
   })
 
@@ -43,4 +57,21 @@ export const useFuturesData = (id: string) => {
     loading,
     error,
   }
+}
+
+// 获取单个期货详情
+export const getFuturesDetail = (id: string): Promise<Futures> =>
+  request.get(`/futures/${id}`)
+
+export const useFuturesDetail = (id: string) => {
+  const {
+    data,
+    isPending: loading,
+    error,
+  } = useQuery({
+    queryKey: futuresKeys.detail(id),
+    queryFn: () => getFuturesDetail(id),
+  })
+
+  return { data, loading, error }
 }

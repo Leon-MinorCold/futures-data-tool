@@ -1,4 +1,3 @@
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableHead,
@@ -9,14 +8,13 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { MoreHorizontal } from 'lucide-react'
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
+
 import PageContainer from '@/layout/page-container'
 import { useFutures } from '@/services/futures/futures'
 import { Futures } from '@/types/futures/futures'
@@ -36,22 +34,41 @@ import {
 import { Icons } from '@/components/ui/icons'
 import { useState } from 'react'
 import { FuturesFormDialog } from '@/pages/dashboard/futures/FuturesFormDialog'
-import { useCreateFutures } from '@/services/futures/create'
-import { useUpdateFutures } from '@/services/futures/update'
+import { DeleteAlertDialog } from './DeleteAlertDialog'
+import DateTimeDisplay from '@/components/datetime-display'
 
 const FuturesPage = () => {
-  const { loading: futuresLoading, error, futures = [], refetch } = useFutures()
-  const { loading: createLoading, createFutures } = useCreateFutures()
-  const { loading: updateLoading, updateFutures } = useUpdateFutures()
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  })
+
+  const { loading, data, refetch } = useFutures({
+    page: pagination.pageIndex + 1,
+    pageSize: pagination.pageSize,
+  })
+
+  const list = data?.list || []
+  const total = data?.pagination.total || 0
+
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingFutures, setEditingFutures] = useState<Futures | null>(null)
+  const [editingData, setEditingData] = useState<Futures | null>(null)
 
   const columns: ColumnDef<Futures>[] = [
     {
       accessorKey: 'id',
-      header: 'ID',
+      header: () => {
+        return '序号'
+      },
+      cell: ({ row, table }) => {
+        const { pageIndex, pageSize } = table.getState().pagination
+        return (
+          <div className="text-center">
+            {pageIndex * pageSize + row.index + 1}
+          </div>
+        )
+      },
     },
-
     {
       accessorKey: 'contractName',
       header: '品种名称',
@@ -92,83 +109,67 @@ const FuturesPage = () => {
     },
     {
       accessorKey: 'contractUnitValue',
-      header: '合约单位',
+      header: '期货交易单位',
       cell: ({ row }) => {
         const futures = row.original
         return (
           <div className="capitalize">
             {futures.contractUnitValue}
-            {futures.contractUnitType}
+            {futures.contractUnitType}/手
           </div>
         )
+      },
+    },
+    {
+      accessorKey: 'createdAt',
+      header: '创建时间',
+      cell: ({ row }) => {
+        return <DateTimeDisplay timestamp={row.getValue('createdAt')} />
+      },
+    },
+    {
+      accessorKey: 'updatedAt',
+      header: '更新时间',
+      cell: ({ row }) => {
+        return <DateTimeDisplay timestamp={row.getValue('updatedAt')} />
       },
     },
     {
       id: 'actions',
       cell: ({ row }) => {
         const futures = row.original
+
         return (
-          <div className="flex gap-x-2">
+          <div className="flex gap-2">
             <Button
               size="sm"
               variant="outline"
               onClick={() => {
-                setEditingFutures(futures)
+                setEditingData(futures)
                 setDialogOpen(true)
               }}
             >
               编辑
             </Button>
-            <Button size="sm" variant="destructive">
-              删除
-            </Button>
+            <DeleteAlertDialog futuresId={futures.id} />
           </div>
-          // <DropdownMenu>
-          //   <DropdownMenuTrigger asChild>
-          //     <Button variant="ghost" className="h-8 w-8 p-0">
-          //       <span className="sr-only">Open menu</span>
-          //       <MoreHorizontal className="h-4 w-4" />
-          //     </Button>
-          //   </DropdownMenuTrigger>
-          //   <DropdownMenuContent align="end">
-          //     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          //     <DropdownMenuItem
-          //       onClick={() => navigator.clipboard.writeText(futures.id)}
-          //     >
-          //       Copy payment ID
-          //     </DropdownMenuItem>
-          //     <DropdownMenuSeparator />
-          //     <DropdownMenuItem>View customer</DropdownMenuItem>
-          //     <DropdownMenuItem>View payment details</DropdownMenuItem>
-          //   </DropdownMenuContent>
-          // </DropdownMenu>
         )
       },
     },
   ]
 
   const table = useReactTable({
-    data: futures,
+    data: list || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
+    state: {
+      pagination,
+    },
+    manualPagination: true,
+    pageCount: Math.ceil(total / pagination.pageSize),
   })
-
-  // 处理表单提交
-  const handleSubmit = async (
-    values: Omit<Futures, 'id'> & { id?: string }
-  ) => {
-    try {
-      if (values.id) {
-        await updateFutures(values as Futures)
-      } else {
-        await createFutures(values)
-      }
-      refetch()
-    } catch (error) {
-      console.error('操作失败:', error)
-    }
-  }
 
   return (
     <PageContainer>
@@ -176,16 +177,16 @@ const FuturesPage = () => {
         <Button
           size="sm"
           onClick={() => {
-            setEditingFutures(null)
+            setEditingData(null)
             setDialogOpen(true)
           }}
         >
           <Icons.add />
-          新增
+          新增期货数据
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border mb-2">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -236,31 +237,60 @@ const FuturesPage = () => {
         </Table>
       </div>
 
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div className="flex items-center justify-between px-2">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium">每页</span>
+            <Select
+              value={`${pagination.pageSize}`}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value))
+              }}
+            >
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue placeholder={pagination.pageSize} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 30, 40, 50].map((size) => (
+                  <SelectItem key={size} value={`${size}`}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            显示第 {pagination.pageIndex * pagination.pageSize + 1} -{' '}
+            {Math.min((pagination.pageIndex + 1) * pagination.pageSize, total)}
+            条， 共 {total} 条
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            上一页
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            下一页
+          </Button>
+        </div>
       </div>
 
       <FuturesFormDialog
-        key={editingFutures?.id || 'create'}
+        key={editingData?.id || 'create'}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        initialData={editingFutures}
-        onSubmit={handleSubmit}
+        initialData={editingData}
       />
     </PageContainer>
   )
