@@ -20,7 +20,7 @@ export const getFutures = (
 export const useFutures = (filters: getAllFuturesDto) => {
   const {
     data,
-    isPending: loading,
+    isLoading: loading,
     error,
     refetch,
   } = useQuery({
@@ -45,7 +45,7 @@ export const getFuturesData = (id: string): Promise<Futures> =>
 export const useFuturesData = (id: string) => {
   const {
     error,
-    isPending: loading,
+    isLoading: loading,
     data: futuresData,
   } = useQuery({
     queryKey: futuresKeys.detail(id),
@@ -66,12 +66,14 @@ export const getFuturesDetail = (id: string): Promise<Futures> =>
 export const useFuturesDetail = (id: string) => {
   const {
     data,
-    isPending: loading,
+    isLoading: loading,
     error,
+    refetch,
   } = useQuery({
     queryKey: futuresKeys.detail(id),
     queryFn: () => getFuturesDetail(id),
+    enabled: false,
   })
 
-  return { data, loading, error }
+  return { data, loading, error, refetch }
 }
