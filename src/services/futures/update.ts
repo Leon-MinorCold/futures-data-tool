@@ -16,14 +16,12 @@ export const useUpdateFutures = () => {
     mutateAsync: updateFuturesFn,
   } = useMutation({
     mutationFn: updateFutures,
-    onSuccess(_, variables) {
+    onSuccess(data) {
       toast.success('更新成功')
       queryClient.invalidateQueries({
         queryKey: futuresKeys.lists(),
       })
-      queryClient.invalidateQueries({
-        queryKey: futuresKeys.detail(variables.id),
-      })
+      queryClient.setQueryData(futuresKeys.detail(data.id), data)
     },
   })
 

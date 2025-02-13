@@ -10,5 +10,6 @@ export interface NavItem {
   label?: string
   description?: string
   isActive?: boolean
+  permission?: string[]
   children?: NavItem[]
 }

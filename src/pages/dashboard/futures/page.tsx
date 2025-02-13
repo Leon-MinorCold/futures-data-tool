@@ -35,7 +35,7 @@ import { Icons } from '@/components/ui/icons'
 import { useState } from 'react'
 import { FuturesFormDialog } from '@/pages/dashboard/futures/FuturesFormDialog'
 import { DeleteAlertDialog } from './DeleteAlertDialog'
-import DateTimeDisplay from '@/components/datetime-display'
+import { formatDateTime } from '@/lib/date'
 
 const FuturesPage = () => {
   const [pagination, setPagination] = useState({
@@ -123,16 +123,12 @@ const FuturesPage = () => {
     {
       accessorKey: 'createdAt',
       header: '创建时间',
-      cell: ({ row }) => {
-        return <DateTimeDisplay timestamp={row.getValue('createdAt')} />
-      },
+      cell: ({ row }) => formatDateTime(row.getValue('createdAt')),
     },
     {
       accessorKey: 'updatedAt',
       header: '更新时间',
-      cell: ({ row }) => {
-        return <DateTimeDisplay timestamp={row.getValue('updatedAt')} />
-      },
+      cell: ({ row }) => formatDateTime(row.getValue('updatedAt')),
     },
     {
       id: 'actions',

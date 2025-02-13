@@ -26,11 +26,13 @@ import {
   SunMedium,
   Trash,
   Twitter,
-  User,
   UserCircle2Icon,
   UserPen,
   UserX2Icon,
   X,
+  Info,
+  UsersRound,
+  UserRound,
 } from 'lucide-react'
 
 export type Icon = LucideIcon
@@ -49,21 +51,19 @@ export const Icons = {
   employee: UserX2Icon,
   post: FileText,
   page: File,
-  userPen: UserPen,
-  user2: UserCircle2Icon,
   media: Image,
   settings: Settings,
   billing: CreditCard,
   ellipsis: MoreVertical,
   add: Plus,
   warning: AlertTriangle,
-  user: User,
   arrowRight: ArrowRight,
   help: HelpCircle,
   pizza: Pizza,
   sun: SunMedium,
   moon: Moon,
   laptop: Laptop,
+
   gitHub: ({ ...props }: LucideProps) => (
     <svg
       aria-hidden="true"
@@ -83,4 +83,13 @@ export const Icons = {
   ),
   twitter: Twitter,
   check: Check,
+
+  // Accessibility
+  info: Info,
+
+  // Account
+  users: UsersRound,
+  user: UserRound,
+  userPen: UserPen,
+  user2: UserCircle2Icon,
 }

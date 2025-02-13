@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Icons } from '@/components/ui/icons'
 import PageContainer from '@/layout/page-container'
-import DateTimeDisplay from '@/components/datetime-display'
 import { useUserList } from '@/services/user'
 import { useState } from 'react'
 import {
@@ -32,6 +31,9 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { User } from '@/types/user/user'
+import { DeleteAlertDialog } from '@/pages/dashboard/user-management/DeleteAlertDialog'
+import { UserFormDialog } from '@/pages/dashboard/user-management/UserFormDialog'
+import { formatDateTime } from '@/lib/date'
 
 const UserManagementPage = () => {
   const [pagination, setPagination] = useState({
@@ -80,20 +82,20 @@ const UserManagementPage = () => {
       accessorKey: 'createdAt',
       header: '创建时间',
       cell: ({ row }) => {
-        return <DateTimeDisplay timestamp={row.getValue('createdAt')} />
+        return formatDateTime(row.getValue('createdAt'))
       },
     },
     {
       accessorKey: 'updatedAt',
       header: '更新时间',
       cell: ({ row }) => {
-        return <DateTimeDisplay timestamp={row.getValue('updatedAt')} />
+        return formatDateTime(row.getValue('updatedAt'))
       },
     },
     {
       id: 'actions',
       cell: ({ row }) => {
-        const futures = row.original
+        const user = row.original
 
         return (
           <div className="flex gap-2">
@@ -101,13 +103,13 @@ const UserManagementPage = () => {
               size="sm"
               variant="outline"
               onClick={() => {
-                setEditingData(futures)
+                setEditingData(user)
                 setDialogOpen(true)
               }}
             >
               编辑
             </Button>
-            {/* <DeleteAlertDialog futuresId={futures.id} /> */}
+            <DeleteAlertDialog userId={user.id} />
           </div>
         )
       },
@@ -130,7 +132,13 @@ const UserManagementPage = () => {
   return (
     <PageContainer>
       <div className="flex flex-row-reverse mb-4">
-        <Button size="sm">
+        <Button
+          size="sm"
+          onClick={() => {
+            setEditingData(null)
+            setDialogOpen(true)
+          }}
+        >
           <Icons.add />
           新增用户
         </Button>
@@ -235,6 +243,13 @@ const UserManagementPage = () => {
           </Button>
         </div>
       </div>
+
+      <UserFormDialog
+        key={editingData?.id || 'create'}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initialData={editingData}
+      />
     </PageContainer>
   )
 }

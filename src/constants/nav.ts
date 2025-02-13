@@ -17,15 +17,16 @@ export const navItems: NavItem[] = [
       {
         title: 'Profile',
         url: '/dashboard/profile',
-        icon: 'userPen',
+        icon: 'users',
       },
     ],
   },
   {
     title: 'Users',
-    icon: 'user',
+    icon: 'users',
     url: '/dashboard/users',
     isActive: false,
+    permission: ['admin'],
   },
   {
     title: 'Futures',
