@@ -18,9 +18,9 @@ export const futuresKeys = {
 } satisfies Record<string, (...args: any[]) => QueryKey>
 
 export const userKeys = {
-  all: () => ['users'] as const,
+  all: () => ['users'],
 
-  lists: (): QueryKey => [...userKeys.all(), 'user'] as const,
+  lists: (): QueryKey => [...userKeys.all(), 'list'] as const,
   list: (filter: UserListDto): QueryKey => [...userKeys.all(), 'list', filter],
 
   details: (): QueryKey => [...userKeys.all(), 'detail'] as const,

@@ -15,7 +15,7 @@ export const useMe = () => {
     isPending: loading,
     data: user,
   } = useQuery({
-    queryKey: userKeys.detail('me'), // Todo: 待修改成和id相关
+    queryKey: userKeys.details(),
     queryFn: getMe,
   })
 

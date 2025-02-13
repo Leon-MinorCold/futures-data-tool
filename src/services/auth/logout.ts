@@ -1,3 +1,4 @@
+import { userKeys } from '@/constants'
 import { queryClient } from '@/lib/provider'
 import { request } from '@/lib/request'
 import { useAuthStore } from '@/store/auth'
@@ -16,11 +17,11 @@ export const useLogout = () => {
     mutationFn: logout,
     onSuccess: () => {
       setUser(null)
-      queryClient.setQueryData(['user'], null)
+      queryClient.setQueryData(userKeys.details(), null)
     },
     onError: () => {
       setUser(null)
-      queryClient.setQueryData(['user'], null)
+      queryClient.setQueryData(userKeys.details(), null)
     },
   })
 

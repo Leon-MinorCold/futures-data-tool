@@ -5,6 +5,7 @@ import { redirect } from 'react-router'
 import { queryClient } from '@/lib/provider'
 import { HttpCode, ResponseCode } from '@/types/request'
 import { refreshToken } from '@/services/auth/refresh'
+import { userKeys } from '@/constants'
 
 interface ApiResponse<T> {
   data: T
@@ -94,7 +95,7 @@ const handleAuthError = () => {
 // Interceptor to handle expired refresh token errors
 const handleRefreshError = async () => {
   // Todo: invalida user cache data
-  // await queryClient.invalidateQueries({ queryKey: 'user' })
+  await queryClient.invalidateQueries({ queryKey: userKeys.all() })
   redirect('/auth/login')
 }
 

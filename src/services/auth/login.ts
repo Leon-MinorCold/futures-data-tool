@@ -4,6 +4,7 @@ import { LoginDto } from '@/types/auth/login'
 import { User } from '@/types/user/user'
 import { useAuthStore } from '@/store/auth'
 import { queryClient } from '@/lib/provider'
+import { userKeys } from '@/constants'
 
 export const login = (data: LoginDto): Promise<User> =>
   request.post('/auth/login', data)
@@ -19,7 +20,7 @@ export const useLogin = () => {
     mutationFn: login,
     onSuccess(data) {
       setUser(data)
-      queryClient.setQueryData(['user'], data)
+      queryClient.setQueryData(userKeys.detail(data.id), data)
     },
   })
 
