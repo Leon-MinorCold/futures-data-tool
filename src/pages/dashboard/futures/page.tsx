@@ -70,13 +70,13 @@ const FuturesPage = () => {
       },
     },
     {
-      accessorKey: 'contractName',
+      accessorKey: 'name',
       header: '品种名称',
       cell: ({ row }) => {
         const futures = row.original
         return (
           <div className="capitalize">
-            {row.getValue('contractName')}-{futures.contractCode}
+            {row.getValue('name')}-{futures.code}
           </div>
         )
       },
@@ -92,14 +92,16 @@ const FuturesPage = () => {
       accessorKey: 'tickValue',
       header: '每跳波动价格',
       cell: ({ row }) => {
-        return <div className="capitalize">{row.getValue('tickValue')}元</div>
+        const origin = row.original
+        const tickValue = origin.size * origin.minPriceTick || 0
+        return <div className="capitalize">{tickValue}元</div>
       },
     },
     {
-      accessorKey: 'tradeFee',
+      accessorKey: 'fee',
       header: '手续费',
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('tradeFee')}元</div>
+        <div className="capitalize">{row.getValue('fee')}元</div>
       ),
     },
 
@@ -108,14 +110,14 @@ const FuturesPage = () => {
       header: '交易所',
     },
     {
-      accessorKey: 'contractUnitValue',
+      accessorKey: 'size',
       header: '期货交易单位',
       cell: ({ row }) => {
         const futures = row.original
         return (
           <div className="capitalize">
-            {futures.contractUnitValue}
-            {futures.contractUnitType}/手
+            {futures.size}
+            {futures.unit}/手
           </div>
         )
       },

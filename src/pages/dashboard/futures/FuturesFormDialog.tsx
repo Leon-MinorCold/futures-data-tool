@@ -55,14 +55,13 @@ export function FuturesFormDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(getSchema(isUpdate)),
     defaultValues: {
-      contractName: '玻璃',
-      contractCode: 'FG',
+      name: '玻璃',
+      code: 'FG',
       minPriceTick: 1,
-      tickValue: 20,
-      tradeFee: 6,
+      fee: 6,
       exchange: '上海交易所',
-      contractUnitValue: 20,
-      contractUnitType: '吨',
+      size: 20,
+      unit: '吨',
       id: undefined,
     },
   })
@@ -74,9 +73,8 @@ export function FuturesFormDialog({
         form.reset({
           ...initialData,
           minPriceTick: Number(initialData.minPriceTick),
-          tickValue: Number(initialData.tickValue),
-          tradeFee: Number(initialData.tradeFee),
-          contractUnitValue: Number(initialData.contractUnitValue),
+          fee: Number(initialData.fee),
+          size: Number(initialData.size),
           id: initialData.id,
         })
       } else {
@@ -116,7 +114,7 @@ export function FuturesFormDialog({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="contractName"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>期货名称</FormLabel>
@@ -130,7 +128,7 @@ export function FuturesFormDialog({
 
               <FormField
                 control={form.control}
-                name="contractCode"
+                name="code"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>期货代码</FormLabel>
@@ -168,29 +166,6 @@ export function FuturesFormDialog({
 
               <FormField
                 control={form.control}
-                name="tickValue"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>每跳波动价格</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(event) =>
-                          field.onChange(+event.target.value)
-                        }
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      最小价格波动 * 期货交易单位值(非强制)
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="exchange"
                 render={({ field }) => (
                   <FormItem>
@@ -205,7 +180,7 @@ export function FuturesFormDialog({
 
               <FormField
                 control={form.control}
-                name="tradeFee"
+                name="fee"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>手续费</FormLabel>
@@ -225,7 +200,7 @@ export function FuturesFormDialog({
 
               <FormField
                 control={form.control}
-                name="contractUnitValue"
+                name="size"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>期货交易单位值</FormLabel>
@@ -238,7 +213,7 @@ export function FuturesFormDialog({
                         }
                       />
                     </FormControl>
-                    <FormDescription>例如：玻璃 20吨/手</FormDescription>
+                    <FormDescription>例如：玻璃 20(吨/手)</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -246,7 +221,7 @@ export function FuturesFormDialog({
 
               <FormField
                 control={form.control}
-                name="contractUnitType"
+                name="unit"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>期货单位类型</FormLabel>
