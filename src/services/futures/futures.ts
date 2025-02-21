@@ -1,32 +1,61 @@
-import { futuresKeys } from '@/constants'
 import { request } from '@/lib/request'
 import { PaginatedResponse } from '@/types/common'
 import {
   Futures,
   futuresSchema,
+  getPaginatedFuturesDto,
   getAllFuturesDto,
 } from '@/types/futures/futures'
 import { useQuery } from '@tanstack/react-query'
-import { futuresKeys as queryKeys } from '@/constants/query-keys'
+import { futuresKeys } from '@/constants/query-keys'
 
-// Get all futures aata
-export const getFutures = (
-  params: getAllFuturesDto
-): Promise<PaginatedResponse<Futures>> =>
-  request.get('/futures', {
+// Get all futures data
+export const getAllFutures = (
+  params?: getAllFuturesDto
+): Promise<{ list: Futures[] }> =>
+  request.get('/futures/all', {
     params,
   })
 
-export const useFutures = (filters: getAllFuturesDto) => {
+export const useAllFutures = (filters?: getAllFuturesDto) => {
   const {
     data,
     isLoading: loading,
     error,
     refetch,
   } = useQuery({
-    queryKey: queryKeys.list(filters),
+    queryKey: futuresKeys.list(filters),
     queryFn: async () => {
-      const { list, pagination } = await getFutures(filters)
+      const data = await getAllFutures(filters)
+      return data.list
+    },
+  })
+  return {
+    data,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+// Get paginated futures data
+export const getPaginatedFutures = (
+  params: getPaginatedFuturesDto
+): Promise<PaginatedResponse<Futures>> =>
+  request.get('/futures', {
+    params,
+  })
+
+export const usePaginatedFutures = (filters: getPaginatedFuturesDto) => {
+  const {
+    data,
+    isLoading: loading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: futuresKeys.list(filters),
+    queryFn: async () => {
+      const { list, pagination } = await getPaginatedFutures(filters)
       const _list = list.map((item) => futuresSchema.parse(item))
       return {
         list: _list,

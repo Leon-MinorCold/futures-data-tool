@@ -20,6 +20,12 @@ export const futuresSchema = z
       .max(50, '交易所名称不能超过50个字符'),
     size: z.number().positive('期货交易单位值必须大于0'),
     unit: z.string().min(1, '期货交易单位不能为空'),
+
+    // 前端用
+    tickValue: z
+      .number()
+      .nonnegative()
+      .describe('由期货交易单位值 * 最小价格波动得到'),
   })
   .merge(dateSchema)
 
@@ -31,15 +37,27 @@ export const createFuturesSchema = futuresSchema.pick({
   exchange: true,
   size: true,
   unit: true,
+  tickValue: true,
 })
 
 export const updateFuturesSchema = z
   .object({ id: z.string() })
   .merge(futuresSchema.partial().omit({ id: true }))
 
-export const getAllFuturesSchema = z.object({}).merge(paginationSchema)
+export const getAllFuturesSchema = z
+  .object({
+    exchange: z.string().optional(),
+  })
+  .merge(paginationSchema)
+  .extend({
+    page: z.number().optional(),
+    pageSize: z.number().optional(),
+  })
 
 export class Futures extends createZodDto(futuresSchema) {}
 export class CreateFuturesDto extends createZodDto(createFuturesSchema) {}
 export class UpdateFuturesDto extends createZodDto(updateFuturesSchema) {}
 export class getAllFuturesDto extends createZodDto(getAllFuturesSchema) {}
+export class getPaginatedFuturesDto extends createZodDto(
+  getAllFuturesSchema.merge(paginationSchema)
+) {}

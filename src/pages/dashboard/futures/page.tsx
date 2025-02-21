@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 
 import PageContainer from '@/layout/page-container'
-import { useFutures } from '@/services/futures/futures'
+import { usePaginatedFutures } from '@/services/futures/futures'
 import { Futures } from '@/types/futures/futures'
 
 import {
@@ -43,7 +43,7 @@ const FuturesPage = () => {
     pageSize: 10,
   })
 
-  const { loading, data, refetch } = useFutures({
+  const { loading, data, refetch } = usePaginatedFutures({
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
   })

@@ -66,6 +66,10 @@ export function FuturesFormDialog({
     },
   })
 
+  // 计算每跳波动价格
+  const { size, minPriceTick } = form.getValues()
+  const tickValue = size * minPriceTick
+
   // 修复：添加 open 到依赖项
   useEffect(() => {
     if (open) {
@@ -228,6 +232,23 @@ export function FuturesFormDialog({
                     <FormControl>
                       <Input placeholder="如：吨" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tickValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>每跳波动价格</FormLabel>
+                    <FormControl>
+                      <Input type="number" value={tickValue} readOnly />
+                    </FormControl>
+                    <FormDescription>
+                      每跳波动价格 = 期货交易单位值 * 最小价格波动
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
