@@ -31,7 +31,27 @@ export const navItems: NavItem[] = [
   {
     title: 'Futures',
     icon: 'employee',
-    url: '/dashboard/futures',
+    url: '#',
     isActive: false,
+    children: [
+      {
+        title: '期货数据管理',
+        icon: 'employee',
+        url: '/dashboard/futures',
+        isActive: false,
+      },
+      {
+        title: 'Transaction Tool',
+        icon: 'employee',
+        url: '/dashboard/futures-transaction-tool',
+        isActive: false,
+      },
+      {
+        title: 'Transaction History',
+        icon: 'employee',
+        url: '/dashboard/futures-transaction-history',
+        isActive: false,
+      },
+    ],
   },
 ]

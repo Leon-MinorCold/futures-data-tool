@@ -15,6 +15,8 @@ import {
 import OverviewPage from '@/pages/dashboard/overview/page'
 import ErrorPage from '@/components/error-page'
 import FuturesPage from '@/pages/dashboard/futures/page'
+import FuturesTransactionHistoryPage from '@/pages/dashboard/futures-transaction-history/page'
+import FuturesTransactionToolPage from '@/pages/dashboard/futures-transaction-tool/page'
 
 export const routes = createRoutesFromElements(
   <Route element={<Providers />} errorElement={<ErrorPage />}>
@@ -35,8 +37,15 @@ export const routes = createRoutesFromElements(
         <Route element={<Layout />}>
           <Route path="overview" element={<OverviewPage />} />
           <Route path="users" element={<UserManagementPage />} />
-
           <Route path="futures" element={<FuturesPage />} />
+          <Route
+            path="futures-transaction-history"
+            element={<FuturesTransactionHistoryPage />}
+          />
+          <Route
+            path="futures-transaction-tool"
+            element={<FuturesTransactionToolPage />}
+          />
 
           <Route
             index
