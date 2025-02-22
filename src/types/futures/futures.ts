@@ -25,6 +25,7 @@ export const futuresSchema = z
     tickValue: z
       .number()
       .nonnegative()
+      .optional()
       .describe('由期货交易单位值 * 最小价格波动得到'),
   })
   .merge(dateSchema)
