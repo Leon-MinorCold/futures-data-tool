@@ -5,7 +5,10 @@ import { futuresSchema } from '../futures/futures'
 const FuturesTransactionProfitEnum = z
   .enum(['m1', 'm2', 'm3', 'sum'])
   .default('m1')
-const FuturesTransactionEntryEnum = z.enum(['long', 'long']).default('long')
+const FuturesTransactionEntryEnum = z.enum(['short', 'long']).default('long')
+export type FuturesTransactionEntryType = z.infer<
+  typeof FuturesTransactionEntryEnum
+>
 
 export const FuturesTransactionMetaSchema = futuresSchema
   .pick({
@@ -54,12 +57,8 @@ export const DEFAULT_FUTURES_TRANSACTION_BASIS: FuturesTransactionBasis = {
 }
 
 // 开仓控制工具（做空or做多）
-const futuresTransactionMSchema = z.object({
-  entrySwing: z
-    .number()
-    .nonnegative('开仓波动价格必须大于等于0')
-    .default(0)
-    .describe('开仓波动价格'),
+export const futuresTransactionMSchema = z.object({
+  entrySwing: z.number().default(0).describe('开仓波动价格'),
   positionRatio: z
     .number()
     .nonnegative('仓位百分比必须大于等于0')
@@ -86,7 +85,7 @@ export const DEFAULT_FUTURES_TRANSACTION_M: FuturesTransactionM = {
   breakevenSwing: 0,
 }
 
-const futuresTransactionEntrySchema = z.object({
+export const futuresTransactionEntrySchema = z.object({
   entryPrice: z
     .number()
     .nonnegative('开仓波动价格必须大于等于0')
