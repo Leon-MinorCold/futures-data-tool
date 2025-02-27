@@ -62,6 +62,7 @@ export function FuturesFormDialog({
       exchange: '上海交易所',
       size: 20,
       unit: '吨',
+      tickValue: 1 * 20,
       id: undefined,
     },
   })

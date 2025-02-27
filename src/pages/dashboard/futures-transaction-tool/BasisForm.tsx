@@ -7,36 +7,22 @@ import {
   FormMessage,
   FormDescription,
 } from '@/components/ui/form'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Table, TableBody, TableRow, TableCell } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
-  futuresTransactionBasisSchema,
   DEFAULT_FUTURES_TRANSACTION_BASIS,
-  FuturesTransactionMetaSchema,
   DEFAULT_FUTURES_TRANSACTION_META,
+  FuturesTransactionEntryType,
 } from '@/types/futures-transaction/futures-transaction'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import FuturesSelector from '@/components/futures-selector'
 import { useAllFutures } from '@/services/futures/futures'
 import { useEffect } from 'react'
 import { useFuturesTransactionStore } from '@/store/futuresTransaction'
-
-export const BasisFormSchema = z.object({}).extend({
-  basis: futuresTransactionBasisSchema.extend({
-    // 以下5个字段只有前端用，纯用来展示
-    maxTradableLots: z.number(), // 可交易总手数
-    usedMargin: z.number(), // 交易使用保证金
-    riskControl: z.number(), // 资金风控
-    actualTickValue: z.number(), //实际交易每跳波动价格
-    tickValue: z.number(), // 期货的每跳波动价格
-  }),
-  futuresId: z.string(),
-  futuresMeta: FuturesTransactionMetaSchema,
-})
-
-export type BasisFormValues = z.infer<typeof BasisFormSchema>
+import { BasisFormValues, basisFormSchema } from './schemas'
 
 // 创建计算函数集合
 const calculateDerivedValues = (
@@ -46,27 +32,33 @@ const calculateDerivedValues = (
   tickValue: number,
   maxTradableLots: number
 ) => ({
-  usedMargin: margin * maxTradableLots,
-  riskControl:
-    (margin * maxTradableLots) / ((totalCapital * capitalRatio) / 100),
-  actualTickValue: tickValue * maxTradableLots,
+  captitalTrading: +(totalCapital * (capitalRatio / 100)).toFixed(2),
+  usedMargin: +(margin * maxTradableLots).toFixed(2),
+  riskControl: +(
+    (margin * maxTradableLots) /
+    ((totalCapital * capitalRatio) / 100)
+  ).toFixed(2),
+  actualTickValue: +(tickValue * maxTradableLots).toFixed(2),
 })
 
 const BasisForm = () => {
   const { data: futuresList } = useAllFutures()
-  const { setBasisFormData } = useFuturesTransactionStore()
+  const { setBasisFormData, setTab, setEntryType } =
+    useFuturesTransactionStore()
   const form = useForm<BasisFormValues>({
-    resolver: zodResolver(BasisFormSchema),
+    resolver: zodResolver(basisFormSchema),
     defaultValues: {
       futuresId: '',
       futuresMeta: DEFAULT_FUTURES_TRANSACTION_META,
       basis: {
         ...DEFAULT_FUTURES_TRANSACTION_BASIS,
+        totalCapital: 1000,
         maxTradableLots: 0,
         usedMargin: 0,
         riskControl: 0,
         actualTickValue: 0,
         tickValue: 0,
+        captitalTrading: 0,
       },
     },
   })
@@ -108,7 +100,10 @@ const BasisForm = () => {
 
     // 合并计算逻辑
     if (totalCapital && margin && capitalRatio) {
-      const newMaxTradableLots = totalCapital / (capitalRatio * margin)
+      const newMaxTradableLots = +(
+        totalCapital /
+        (capitalRatio * margin)
+      ).toFixed(2)
       const shouldUpdateMaxLots =
         Math.abs(form.getValues('basis.maxTradableLots') - newMaxTradableLots) >
         0.01
@@ -117,7 +112,7 @@ const BasisForm = () => {
         form.setValue('basis.maxTradableLots', newMaxTradableLots)
 
         // 计算衍生值
-        const { usedMargin, riskControl, actualTickValue } =
+        const { usedMargin, riskControl, actualTickValue, captitalTrading } =
           calculateDerivedValues(
             totalCapital,
             capitalRatio,
@@ -126,6 +121,7 @@ const BasisForm = () => {
             newMaxTradableLots
           )
 
+        form.setValue('basis.captitalTrading', captitalTrading)
         form.setValue('basis.usedMargin', usedMargin)
         form.setValue('basis.riskControl', riskControl)
         form.setValue('basis.actualTickValue', actualTickValue)
@@ -133,286 +129,209 @@ const BasisForm = () => {
     }
   }, [watchedValues, futuresList, form])
 
-  const handlePreSubmit = async (action: 'short' | 'long') => {
-    // Todo: 这里需要执行一步设置全局store short or long的设置
-    console.log('action:', action)
+  const handlePreSubmit = async (action: FuturesTransactionEntryType) => {
+    console.log('sumbit')
+    setEntryType(action)
 
     // 然后执行提交
     await form.handleSubmit(async (values) => {
       // 根据按钮的不同执行不同的逻辑
+      console.log({ values })
       setBasisFormData(values)
+      setTab('entry')
     })()
   }
 
-  const handleSubmit = async (values: BasisFormValues) => {
-    try {
-      console.log('values', values)
-      setBasisFormData(values)
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  // const errors = form.formState.errors
-  // console.log({ errors })
-
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="basis.totalCapital"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>总资金</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="请输入交易总资金"
-                    {...field}
-                    onChange={(event) => field.onChange(+event.target.value)}
+    <div className="space-y-3 w-[800px]">
+      <Alert>
+        <AlertTitle>计算公式如下:</AlertTitle>
+        <AlertDescription className="text-slate-500">
+          <p>{basisFormSchema.shape.basis.shape.captitalTrading.description}</p>
+          <p>{basisFormSchema.shape.basis.shape.maxTradableLots.description}</p>
+          <p>{basisFormSchema.shape.basis.shape.usedMargin.description}</p>
+          <p>{basisFormSchema.shape.basis.shape.riskControl.description}</p>
+          <p>{basisFormSchema.shape.basis.shape.actualTickValue.description}</p>
+          <p>{basisFormSchema.shape.basis.shape.tickValue.description}</p>
+        </AlertDescription>
+      </Alert>
+
+      <Form {...form}>
+        <form>
+          <Table className="border">
+            <TableBody>
+              <TableRow>
+                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
+                  总资金
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-center items-center gap-x-1">
+                    <FormField
+                      control={form.control}
+                      name="basis.totalCapital"
+                      render={({ field }) => (
+                        <FormItem className="w-20">
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(event) =>
+                                field.onChange(+event.target.value)
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <span>元</span>
+                  </div>
+                </TableCell>
+                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
+                  交易品种
+                </TableCell>
+                <TableCell>
+                  <FormField
+                    control={form.control}
+                    name="futuresId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <FuturesSelector
+                            className="w-44"
+                            value={field.value}
+                            onChange={field.onChange}
+                            disabled={form.formState.isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                </TableCell>
+              </TableRow>
 
-          <FormField
-            control={form.control}
-            name="futuresId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>交易品种</FormLabel>
-                <FormControl>
-                  <FuturesSelector
-                    value={field.value}
-                    onChange={field.onChange}
-                    disabled={form.formState.isSubmitting}
-                  />
-                </FormControl>
-                <FormDescription>
-                  交易品种决定最小变动单位和每跳波动价格
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <TableRow>
+                <TableCell className="bg-slate-100 dark:bg-gray-600">
+                  <div className="flex justify-center items-center gap-x-2">
+                    <span>交易使用资金%</span>
+                    <FormField
+                      control={form.control}
+                      name="basis.capitalRatio"
+                      render={({ field }) => (
+                        <FormItem className="w-20">
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(event) =>
+                                field.onChange(+event.target.value)
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">
+                  {form.getValues('basis.captitalTrading')}元
+                </TableCell>
+                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
+                  保证金
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-center items-center gap-x-1">
+                    <FormField
+                      control={form.control}
+                      name="basis.margin"
+                      render={({ field }) => (
+                        <FormItem className="w-20">
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(event) =>
+                                field.onChange(+event.target.value)
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <span>元</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
+                  可交易总手数
+                </TableCell>
+                <TableCell className="text-center">
+                  {form.getValues('basis.maxTradableLots')}手
+                </TableCell>
+                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
+                  最小价格变动
+                </TableCell>
+                <TableCell className="text-center">
+                  {form.getValues('futuresMeta.minPriceTick')}元
+                </TableCell>
+              </TableRow>
 
-          <FormField
-            control={form.control}
-            name="basis.capitalRatio"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>交易使用资金比例%</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="请输入交易使用资金比例"
-                    {...field}
-                    onChange={(event) => field.onChange(+event.target.value)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  交易使用资金 = 总资金 * 交易使用资金百分比。当前交易使用资金为
-                  {form.getValues('basis.totalCapital') *
-                    (form.getValues('basis.capitalRatio') / 100)}
-                  元
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <TableRow>
+                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
+                  交易使用保证金
+                </TableCell>
+                <TableCell className="text-center">
+                  {form.getValues('basis.usedMargin')}元
+                </TableCell>
+                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
+                  期货每跳波动价格
+                </TableCell>
+                <TableCell className="text-center">
+                  {form.getValues('basis.tickValue')}元
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
+                  资金风控
+                </TableCell>
+                <TableCell className="text-center">
+                  {form.getValues('basis.riskControl')}元
+                </TableCell>
+                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
+                  实际交易每跳波动
+                </TableCell>
+                <TableCell>
+                  {form.getValues('basis.actualTickValue')}元
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
 
-          <FormField
-            control={form.control}
-            name="basis.margin"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>保证金</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="请输入保证金金额"
-                    {...field}
-                    onChange={(event) => field.onChange(+event.target.value)}
-                  />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="basis.maxTradableLots"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>可交易总手数</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    disabled
-                    placeholder="请输入总资金、交易使用资金比例以及保证金"
-                    {...field}
-                    onChange={(event) => field.onChange(+event.target.value)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  可交易总手数 = (总资金 * 交易使用资金比例%)/ 保证金
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="futuresMeta.minPriceTick"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>最小变动单位</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    disabled
-                    placeholder="请选择交易品种"
-                    {...field}
-                    onChange={(event) => field.onChange(+event.target.value)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  最小变动单位由选择的交易品种决定。例如，玻璃的最小变动单位为
-                  20元/吨
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="basis.usedMargin"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>交易使用保证金</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    disabled
-                    placeholder="请先输入保证金以及交易使用资金比例"
-                    {...field}
-                    onChange={(event) => field.onChange(+event.target.value)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  交易使用保证金 = 保证金 * 可交易总手数
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="basis.tickValue"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>每跳波动价格</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    disabled
-                    placeholder="请选择交易品种"
-                    {...field}
-                    onChange={(event) => field.onChange(+event.target.value)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  每跳波动价格由选择的期货决定。每跳波动价格 = 期货最小变动单位
-                  * 期货交易单位值。例如: 玻璃的每跳波动价格为
-                  20元/吨，玻璃期货交易单位值为 20吨/手， 所以最小变动单位为 20
-                  * 20 = 400元/手
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="basis.riskControl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>资金风控</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    disabled
-                    placeholder="请选择交易品种"
-                    {...field}
-                    onChange={(event) => field.onChange(+event.target.value)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  资金风控 = 交易使用保证金 / 交易使用资金
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="basis.actualTickValue"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>实际交易每跳波动价格</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    disabled
-                    placeholder="请选择交易品种"
-                    {...field}
-                    onChange={(event) => field.onChange(+event.target.value)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  实际交易每跳波动价格 = 每跳波动价格 * 可交易总手数
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            // onClick={() => onOpenChange(false)}
-          >
-            取消
-          </Button>
-          <Button
-            type="button"
-            onClick={() => handlePreSubmit('short')}
-            disabled={form.formState.isSubmitting}
-          >
-            进入做空单
-          </Button>
-          <Button
-            type="button"
-            onClick={() => handlePreSubmit('long')}
-            disabled={form.formState.isSubmitting}
-          >
-            进入做多单
-          </Button>
-        </div>
-      </form>
-    </Form>
+          <div className="flex justify-end gap-x-2 mt-3">
+            <Button type="button" variant="outline">
+              取消
+            </Button>
+            <Button
+              type="button"
+              onClick={() => handlePreSubmit('short')}
+              disabled={form.formState.isSubmitting}
+            >
+              进入做空单
+            </Button>
+            <Button
+              type="button"
+              onClick={() => handlePreSubmit('long')}
+              disabled={form.formState.isSubmitting}
+            >
+              进入做多单
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   )
 }
 
