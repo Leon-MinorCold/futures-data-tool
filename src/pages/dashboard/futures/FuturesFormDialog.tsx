@@ -67,8 +67,16 @@ export function FuturesFormDialog({
   })
 
   // 计算每跳波动价格
-  const { size, minPriceTick } = form.getValues()
-  const tickValue = size * minPriceTick
+  const { watch, setValue } = form
+  const size = watch('size')
+  const minPriceTick = watch('minPriceTick')
+
+  useEffect(() => {
+    if (size && minPriceTick) {
+      const tickValue = size * minPriceTick
+      setValue('tickValue', tickValue)
+    }
+  }, [size, minPriceTick, setValue])
 
   // 修复：添加 open 到依赖项
   useEffect(() => {
@@ -79,6 +87,7 @@ export function FuturesFormDialog({
           minPriceTick: Number(initialData.minPriceTick),
           fee: Number(initialData.fee),
           size: Number(initialData.size),
+          tickValue: +initialData.minPriceTick * +initialData.size,
           id: initialData.id,
         })
       } else {
@@ -152,17 +161,23 @@ export function FuturesFormDialog({
                 name="minPriceTick"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>最小价格波动</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(event) =>
-                          field.onChange(+event.target.value)
-                        }
-                      />
-                    </FormControl>
-                    <FormDescription>例如: 玻璃 1元/吨</FormDescription>
+                    <FormLabel>期货最小价格波动</FormLabel>
+                    <div className="flex items-center gap-x-2">
+                      <FormControl>
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(event) =>
+                            field.onChange(+event.target.value)
+                          }
+                        />
+                      </FormControl>
+                      <span className="text-sm">元</span>
+                    </div>
+
+                    <FormDescription>
+                      例如: 玻璃的最小价格波动为1元
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -182,32 +197,37 @@ export function FuturesFormDialog({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="fee"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>手续费</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(event) =>
-                          field.onChange(+event.target.value)
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div>
+                <FormField
+                  control={form.control}
+                  name="fee"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>手续费</FormLabel>
+                      <div className="flex items-center gap-x-1">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={(event) =>
+                              field.onChange(+event.target.value)
+                            }
+                          />
+                        </FormControl>
+                        <span className="text-sm">元</span>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
                 name="size"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>期货交易单位值</FormLabel>
+                    <FormLabel>期货交易规模</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -228,10 +248,13 @@ export function FuturesFormDialog({
                 name="unit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>期货单位类型</FormLabel>
+                    <FormLabel>期货交易单位</FormLabel>
                     <FormControl>
                       <Input placeholder="如：吨" {...field} />
                     </FormControl>
+                    <FormDescription>
+                      例如：黄金通常以盎司（ounce）为单位
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -244,10 +267,18 @@ export function FuturesFormDialog({
                   <FormItem>
                     <FormLabel>每跳波动价格</FormLabel>
                     <FormControl>
-                      <Input type="number" value={tickValue} readOnly />
+                      <Input
+                        type="number"
+                        {...field}
+                        disabled
+                        onChange={(event) =>
+                          field.onChange(+event.target.value)
+                        }
+                        readOnly
+                      />
                     </FormControl>
                     <FormDescription>
-                      每跳波动价格 = 期货交易单位值 * 最小价格波动
+                      每跳波动价格(自动计算) = 期货交易规模 * 最小价格波动
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

@@ -58,7 +58,7 @@ export const Icons = {
   add: Plus,
   warning: AlertTriangle,
   arrowRight: ArrowRight,
-  help: HelpCircle,
+
   pizza: Pizza,
   sun: SunMedium,
   moon: Moon,
@@ -86,6 +86,7 @@ export const Icons = {
 
   // Accessibility
   info: Info,
+  help: HelpCircle,
 
   // Account
   users: UsersRound,

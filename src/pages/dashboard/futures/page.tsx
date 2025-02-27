@@ -89,6 +89,19 @@ const FuturesPage = () => {
       ),
     },
     {
+      accessorKey: 'size',
+      header: '期货交易规模',
+      cell: ({ row }) => {
+        const futures = row.original
+        return (
+          <div className="capitalize">
+            {futures.size}
+            {futures.unit}/手
+          </div>
+        )
+      },
+    },
+    {
       accessorKey: 'tickValue',
       header: '每跳波动价格',
       cell: ({ row }) => {
@@ -109,19 +122,7 @@ const FuturesPage = () => {
       accessorKey: 'exchange',
       header: '交易所',
     },
-    {
-      accessorKey: 'size',
-      header: '期货交易单位',
-      cell: ({ row }) => {
-        const futures = row.original
-        return (
-          <div className="capitalize">
-            {futures.size}
-            {futures.unit}/手
-          </div>
-        )
-      },
-    },
+
     {
       accessorKey: 'createdAt',
       header: '创建时间',
