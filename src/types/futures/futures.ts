@@ -12,7 +12,10 @@ export const futuresSchema = z
       .string()
       .min(1, '品种名称不能为空')
       .max(50, '品种名称不能超过50个字符'),
-    minPriceTick: z.number().positive('最小变动单位必须大于0'),
+    minPriceTick: z
+      .number()
+      .positive('最小变动单位必须大于0')
+      .describe('由期货决定'),
     fee: z.number().min(0, '手续费不能为负'),
     exchange: z
       .string()

@@ -3,9 +3,7 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Table, TableBody, TableRow, TableCell } from '@/components/ui/table'
@@ -23,6 +21,7 @@ import { useAllFutures } from '@/services/futures/futures'
 import { useEffect } from 'react'
 import { useFuturesTransactionStore } from '@/store/futuresTransaction'
 import { BasisFormValues, basisFormSchema } from './schemas'
+import FieldTip from '@/pages/dashboard/futures-transaction-tool/FieldTip'
 
 // 创建计算函数集合
 const calculateDerivedValues = (
@@ -32,18 +31,18 @@ const calculateDerivedValues = (
   tickValue: number,
   maxTradableLots: number
 ) => ({
-  captitalTrading: +(totalCapital * (capitalRatio / 100)).toFixed(2),
-  usedMargin: +(margin * maxTradableLots).toFixed(2),
+  captitalTrading: +(totalCapital * (capitalRatio / 100)).toFixed(6),
+  usedMargin: +(margin * maxTradableLots).toFixed(6),
   riskControl: +(
     (margin * maxTradableLots) /
     ((totalCapital * capitalRatio) / 100)
-  ).toFixed(2),
-  actualTickValue: +(tickValue * maxTradableLots).toFixed(2),
+  ).toFixed(6),
+  actualTickValue: +(tickValue * maxTradableLots).toFixed(6),
 })
 
 const BasisForm = () => {
   const { data: futuresList } = useAllFutures()
-  const { setBasisFormData, setTab, setEntryType } =
+  const { setBasisFormData, setTab, setEntryType, setTabDisabledStatus } =
     useFuturesTransactionStore()
   const form = useForm<BasisFormValues>({
     resolver: zodResolver(basisFormSchema),
@@ -100,45 +99,39 @@ const BasisForm = () => {
 
     // 合并计算逻辑
     if (totalCapital && margin && capitalRatio) {
-      const newMaxTradableLots = +(
-        totalCapital /
-        (capitalRatio * margin)
-      ).toFixed(2)
-      const shouldUpdateMaxLots =
-        Math.abs(form.getValues('basis.maxTradableLots') - newMaxTradableLots) >
-        0.01
+      const maxTradableLots = +(
+        (totalCapital * capitalRatio) /
+        (100 * margin)
+      ).toFixed(6)
 
-      if (shouldUpdateMaxLots) {
-        form.setValue('basis.maxTradableLots', newMaxTradableLots)
+      form.setValue('basis.maxTradableLots', maxTradableLots)
 
-        // 计算衍生值
-        const { usedMargin, riskControl, actualTickValue, captitalTrading } =
-          calculateDerivedValues(
-            totalCapital,
-            capitalRatio,
-            margin,
-            tickValue,
-            newMaxTradableLots
-          )
+      // 计算衍生值
+      const { usedMargin, riskControl, actualTickValue, captitalTrading } =
+        calculateDerivedValues(
+          totalCapital,
+          capitalRatio,
+          margin,
+          tickValue,
+          maxTradableLots
+        )
 
-        form.setValue('basis.captitalTrading', captitalTrading)
-        form.setValue('basis.usedMargin', usedMargin)
-        form.setValue('basis.riskControl', riskControl)
-        form.setValue('basis.actualTickValue', actualTickValue)
-      }
+      form.setValue('basis.captitalTrading', captitalTrading)
+      form.setValue('basis.usedMargin', usedMargin)
+      form.setValue('basis.riskControl', riskControl)
+      form.setValue('basis.actualTickValue', actualTickValue)
     }
   }, [watchedValues, futuresList, form])
 
   const handlePreSubmit = async (action: FuturesTransactionEntryType) => {
-    console.log('sumbit')
     setEntryType(action)
 
     // 然后执行提交
     await form.handleSubmit(async (values) => {
       // 根据按钮的不同执行不同的逻辑
-      console.log({ values })
       setBasisFormData(values)
       setTab('entry')
+      setTabDisabledStatus('entry', false)
     })()
   }
 
@@ -266,13 +259,19 @@ const BasisForm = () => {
               </TableRow>
               <TableRow>
                 <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
-                  可交易总手数
+                  <div className="flex justify-center items-center gap-x-1">
+                    <span>可交易总手数</span>
+                    <FieldTip field="maxTradableLots" />
+                  </div>
                 </TableCell>
                 <TableCell className="text-center">
                   {form.getValues('basis.maxTradableLots')}手
                 </TableCell>
-                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
-                  最小价格变动
+                <TableCell className="bg-slate-100  dark:bg-gray-600">
+                  <div className="flex justify-center items-center gap-x-1">
+                    <span>最小价格变动</span>
+                    <FieldTip field="minPriceTick" />
+                  </div>
                 </TableCell>
                 <TableCell className="text-center">
                   {form.getValues('futuresMeta.minPriceTick')}元
@@ -280,22 +279,31 @@ const BasisForm = () => {
               </TableRow>
 
               <TableRow>
-                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
-                  交易使用保证金
+                <TableCell className="bg-slate-100  dark:bg-gray-600">
+                  <div className="flex justify-center items-center gap-x-1">
+                    <span>交易使用保证金</span>
+                    <FieldTip field="usedMargin" />
+                  </div>
                 </TableCell>
                 <TableCell className="text-center">
                   {form.getValues('basis.usedMargin')}元
                 </TableCell>
                 <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
-                  期货每跳波动价格
+                  <div className="flex justify-center items-center gap-x-1">
+                    <span>期货每跳波动价格</span>
+                    <FieldTip field="tickValue" />
+                  </div>
                 </TableCell>
                 <TableCell className="text-center">
                   {form.getValues('basis.tickValue')}元
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
-                  资金风控
+                <TableCell className="bg-slate-100  dark:bg-gray-600">
+                  <div className="flex justify-center items-center gap-x-1">
+                    <span>资金风控</span>
+                    <FieldTip field="riskControl" />
+                  </div>
                 </TableCell>
                 <TableCell className="text-center">
                   {form.getValues('basis.riskControl')}元
@@ -303,7 +311,7 @@ const BasisForm = () => {
                 <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
                   实际交易每跳波动
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   {form.getValues('basis.actualTickValue')}元
                 </TableCell>
               </TableRow>

@@ -3,8 +3,13 @@ import PageContainer from '@/layout/page-container'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import BasisForm from '@/pages/dashboard/futures-transaction-tool/BasisForm'
+import { useFuturesTransactionStore, Tab } from '@/store/futuresTransaction'
+import EntryForm from '@/pages/dashboard/futures-transaction-tool/EntryForm'
+import ProfitForm from '@/pages/dashboard/futures-transaction-tool/ProfitForm'
 
 const FuturesTransactionToolPage = () => {
+  const { tab, setTab, tabDisabledStatus } = useFuturesTransactionStore()
+
   return (
     <PageContainer>
       <div className="container mx-auto">
@@ -19,14 +24,42 @@ const FuturesTransactionToolPage = () => {
           </CardHeader>
 
           <CardContent>
-            <Tabs defaultValue="basis" className="space-y-4">
+            <Tabs
+              value={tab}
+              onValueChange={(t) => setTab(t as Tab)}
+              className="space-y-4"
+            >
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basis">基本风险控制</TabsTrigger>
-                <TabsTrigger value="position">开仓控制工具</TabsTrigger>
-                <TabsTrigger value="float">浮盈管理工具</TabsTrigger>
+                <TabsTrigger value="basis" disabled={tabDisabledStatus.basis}>
+                  基本风险控制
+                </TabsTrigger>
+                <TabsTrigger value="entry" disabled={tabDisabledStatus.entry}>
+                  开仓控制工具
+                </TabsTrigger>
+                <TabsTrigger value="profit" disabled={tabDisabledStatus.profit}>
+                  浮盈管理工具
+                </TabsTrigger>
               </TabsList>
-              <TabsContent value="basis">
+              <TabsContent
+                forceMount
+                className="data-[state=inactive]:hidden"
+                value="basis"
+              >
                 <BasisForm />
+              </TabsContent>
+              <TabsContent
+                forceMount
+                className="data-[state=inactive]:hidden"
+                value="entry"
+              >
+                <EntryForm />
+              </TabsContent>
+              <TabsContent
+                forceMount
+                className="data-[state=inactive]:hidden"
+                value="profit"
+              >
+                <ProfitForm />
               </TabsContent>
             </Tabs>
           </CardContent>

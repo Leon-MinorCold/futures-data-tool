@@ -17,7 +17,7 @@ export const FuturesTransactionMetaSchema = futuresSchema
     size: true,
   })
   .extend({
-    commission: z.number().nonnegative(),
+    commission: z.number().nonnegative().describe('期货手续费'),
   })
 
 export type FuturesTransactionMeta = z.infer<
@@ -35,15 +35,15 @@ export const DEFAULT_FUTURES_TRANSACTION_META: FuturesTransactionMeta = {
 export const futuresTransactionBasisSchema = z.object({
   totalCapital: z
     .number()
-    .nonnegative('总资金必须大于等于0')
+    .positive('总资金必须大于0')
     .default(0)
     .describe('总资金'),
   capitalRatio: z
     .number()
-    .nonnegative('资金比例必须大于等于0')
+    .positive('资金比例必须大于0')
     .default(0)
     .describe('资金比例'),
-  margin: z.number().nonnegative('保证金必须大于等于0').describe('保证金'),
+  margin: z.number().positive('保证金必须大于0').describe('保证金'),
 })
 
 export type FuturesTransactionBasis = z.infer<
