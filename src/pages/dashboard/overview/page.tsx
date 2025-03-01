@@ -1,8 +1,5 @@
-import { Button } from '@/components/ui/button'
 import PageContainer from '@/layout/page-container'
-import { DetailView } from '@/pages/dashboard/overview/DetailView'
 import { TabDetailView } from '@/pages/dashboard/overview/PositionControlTable'
-import { SplitDetailView } from '@/pages/dashboard/overview/SplitDetailView'
 import { TradingSystem } from '@/pages/dashboard/overview/TradingSystem'
 import { TwoColumnSingleTable } from '@/pages/dashboard/overview/TwoColumnTable'
 
@@ -21,13 +18,9 @@ const OverviewPage = () => {
 
           <TradingSystem />
 
-          {/* <TwoColumnSingleTable />
-
-          <DetailView />
+          <TwoColumnSingleTable />
 
           <TabDetailView />
-
-          <SplitDetailView /> */}
         </div>
       </div>
     </PageContainer>

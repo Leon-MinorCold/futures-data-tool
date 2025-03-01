@@ -18,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import FuturesSelector from '@/components/futures-selector'
 import { useAllFutures } from '@/services/futures/futures'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useFuturesTransactionStore } from '@/store/futuresTransaction'
 import { BasisFormValues, basisFormSchema } from './schemas'
 import FieldTip from '@/pages/dashboard/futures-transaction-tool/FieldTip'
@@ -47,11 +47,10 @@ const BasisForm = () => {
   const form = useForm<BasisFormValues>({
     resolver: zodResolver(basisFormSchema),
     defaultValues: {
-      futuresId: '',
+      futuresId: 'ed543ba2-ad10-489f-a66f-1d2b7e22d263',
       futuresMeta: DEFAULT_FUTURES_TRANSACTION_META,
       basis: {
         ...DEFAULT_FUTURES_TRANSACTION_BASIS,
-        totalCapital: 1000,
         maxTradableLots: 0,
         usedMargin: 0,
         riskControl: 0,
@@ -62,15 +61,26 @@ const BasisForm = () => {
     },
   })
 
-  // 合并监听字段
-  const watchedValues = form.watch([
-    'futuresId',
-    'basis.totalCapital',
-    'basis.margin',
-    'basis.capitalRatio',
-    'basis.tickValue',
-    'basis.maxTradableLots',
-  ])
+  // 使用useMemo来稳定watchedValues的引用
+  const watchedValues = useMemo(
+    () =>
+      form.watch([
+        'futuresId',
+        'basis.totalCapital',
+        'basis.margin',
+        'basis.capitalRatio',
+        'basis.tickValue',
+        'basis.maxTradableLots',
+      ]),
+    [
+      form.watch('futuresId'),
+      form.watch('basis.totalCapital'),
+      form.watch('basis.margin'),
+      form.watch('basis.capitalRatio'),
+      form.watch('basis.tickValue'),
+      form.watch('basis.maxTradableLots'),
+    ]
+  )
 
   useEffect(() => {
     const [
@@ -85,6 +95,7 @@ const BasisForm = () => {
     // 处理期货选择逻辑
     if (futuresId) {
       const futuresItem = futuresList?.find((item) => item.id === futuresId)
+
       if (futuresItem) {
         const tickValue = futuresItem.size * futuresItem.minPriceTick
         form.setValue('futuresMeta', {
@@ -104,8 +115,6 @@ const BasisForm = () => {
         (100 * margin)
       ).toFixed(6)
 
-      form.setValue('basis.maxTradableLots', maxTradableLots)
-
       // 计算衍生值
       const { usedMargin, riskControl, actualTickValue, captitalTrading } =
         calculateDerivedValues(
@@ -116,12 +125,13 @@ const BasisForm = () => {
           maxTradableLots
         )
 
+      form.setValue('basis.maxTradableLots', maxTradableLots)
       form.setValue('basis.captitalTrading', captitalTrading)
       form.setValue('basis.usedMargin', usedMargin)
       form.setValue('basis.riskControl', riskControl)
       form.setValue('basis.actualTickValue', actualTickValue)
     }
-  }, [watchedValues, futuresList, form])
+  }, [watchedValues, futuresList])
 
   const handlePreSubmit = async (action: FuturesTransactionEntryType) => {
     setEntryType(action)

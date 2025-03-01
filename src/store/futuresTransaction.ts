@@ -4,8 +4,14 @@ import {
   EntryFormValues,
   basisFormSchema,
   BasisFormValues,
+  profitFormSchema,
+  ProfitFormValues,
+  DEFAULT_PROFIT_FORM_VALUES,
 } from '@/pages/dashboard/futures-transaction-tool/schemas'
-import { FuturesTransactionEntryType } from '@/types/futures-transaction/futures-transaction'
+import {
+  FuturesTransactionEntryType,
+  FuturesTransactionProfitType,
+} from '@/types/futures-transaction/futures-transaction'
 import { z } from 'zod'
 import { create } from 'zustand'
 
@@ -15,6 +21,7 @@ export type Tab = z.infer<typeof TabEnum>
 const transactionSchema = z
   .object({
     entry: entryFormSchema,
+    profit: profitFormSchema,
   })
   .merge(basisFormSchema)
 
@@ -22,11 +29,15 @@ type TransactionValues = z.infer<typeof transactionSchema>
 
 type FuturesTransactionStore = {
   formData: TransactionValues
+  tab: Tab
+  tabDisabledStatus: Record<Tab, boolean>
   setEntryType: (type: FuturesTransactionEntryType) => void
   setBasisFormData: (data: BasisFormValues) => void
   setEntryFormData: (data: EntryFormValues) => void
-  tab: Tab
+  setProfitFormData: (data: ProfitFormValues) => void
+  setProfitType: (type: FuturesTransactionProfitType) => void
   setTab: (tab: Tab) => void
+  setTabDisabledStatus: (tab: Tab, status: boolean) => void
 }
 
 const initialState: TransactionValues = {
@@ -40,6 +51,7 @@ const initialState: TransactionValues = {
   basis: {
     totalCapital: 0,
     capitalRatio: 0,
+    captitalTrading: 0,
     margin: 0,
     maxTradableLots: 0,
     usedMargin: 0,
@@ -48,17 +60,30 @@ const initialState: TransactionValues = {
     tickValue: 0,
   },
   entry: DEFAULT_ENTRY_VALUES,
+  profit: DEFAULT_PROFIT_FORM_VALUES,
 }
 
-// Todo: 进行Store设计
 export const useFuturesTransactionStore = create<FuturesTransactionStore>(
   (set, get) => ({
     formData: { ...initialState },
     tab: 'entry',
+    tabDisabledStatus: {
+      basis: false,
+      entry: false,
+      profit: true,
+    },
     setTab(tab: Tab) {
       set({
         tab,
       })
+    },
+    setTabDisabledStatus(tab: Tab, status: boolean) {
+      set((state) => ({
+        tabDisabledStatus: {
+          ...state.tabDisabledStatus,
+          [tab]: status,
+        },
+      }))
     },
 
     // 设置基本风险控制数据
@@ -85,6 +110,18 @@ export const useFuturesTransactionStore = create<FuturesTransactionStore>(
       }))
     },
 
+    setProfitFormData: (data: ProfitFormValues) => {
+      set((state) => ({
+        formData: {
+          ...state.formData,
+          profit: {
+            ...state.formData.profit,
+            ...data,
+          },
+        },
+      }))
+    },
+
     resetForm: () => {
       set({
         formData: { ...initialState },
@@ -98,6 +135,18 @@ export const useFuturesTransactionStore = create<FuturesTransactionStore>(
           entry: {
             ...state.formData.entry,
             entryType: type,
+          },
+        },
+      }))
+    },
+
+    setProfitType(type: FuturesTransactionProfitType) {
+      set((state) => ({
+        formData: {
+          ...state.formData,
+          entry: {
+            ...state.formData.entry,
+            profitType: type,
           },
         },
       }))

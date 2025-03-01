@@ -2,9 +2,10 @@ import { dateSchema, paginationSchema, createZodDto } from '../common'
 import { z } from 'zod'
 import { futuresSchema } from '../futures/futures'
 
-const FuturesTransactionProfitEnum = z
-  .enum(['m1', 'm2', 'm3', 'sum'])
-  .default('m1')
+const FuturesTransactionProfitEnum = z.enum(['m1', 'm2', 'm3', 'sum'])
+export type FuturesTransactionProfitType = z.infer<
+  typeof FuturesTransactionProfitEnum
+>
 const FuturesTransactionEntryEnum = z.enum(['short', 'long']).default('long')
 export type FuturesTransactionEntryType = z.infer<
   typeof FuturesTransactionEntryEnum
@@ -51,9 +52,9 @@ export type FuturesTransactionBasis = z.infer<
 >
 
 export const DEFAULT_FUTURES_TRANSACTION_BASIS: FuturesTransactionBasis = {
-  totalCapital: 0,
-  capitalRatio: 0,
-  margin: 0,
+  totalCapital: 1000,
+  capitalRatio: 10,
+  margin: 1,
 }
 
 // 开仓控制工具（做空or做多）
@@ -61,7 +62,7 @@ export const futuresTransactionMSchema = z.object({
   entrySwing: z.number().default(0).describe('开仓波动价格'),
   positionRatio: z
     .number()
-    .nonnegative('仓位百分比必须大于等于0')
+    .positive('仓位百分比必须大于0')
     .default(0)
     .describe('仓位百分比'),
   stopLossSwing: z
@@ -78,26 +79,14 @@ export const futuresTransactionMSchema = z.object({
 
 export type FuturesTransactionM = z.infer<typeof futuresTransactionMSchema>
 
-export const DEFAULT_FUTURES_TRANSACTION_M: FuturesTransactionM = {
-  entrySwing: 0,
-  positionRatio: 0,
-  stopLossSwing: 0,
-  breakevenSwing: 0,
-}
-
 export const futuresTransactionEntrySchema = z.object({
-  entryPrice: z
-    .number()
-    .nonnegative('开仓波动价格必须大于等于0')
-    .default(0)
-    .describe('开仓价格'),
   entryType: FuturesTransactionEntryEnum.describe(
     '交易类型：做空(short)or做多(long)'
   ),
   profitType: FuturesTransactionProfitEnum.describe('浮盈计算方式'),
-  m1: futuresTransactionMSchema.default(DEFAULT_FUTURES_TRANSACTION_M),
-  m2: futuresTransactionMSchema.default(DEFAULT_FUTURES_TRANSACTION_M),
-  m3: futuresTransactionMSchema.default(DEFAULT_FUTURES_TRANSACTION_M),
+  m1: futuresTransactionMSchema,
+  m2: futuresTransactionMSchema.optional(),
+  m3: futuresTransactionMSchema.optional(),
 })
 
 export type FuturesTransactionEntry = z.infer<
@@ -105,12 +94,26 @@ export type FuturesTransactionEntry = z.infer<
 >
 
 export const DEFAULT_FUTURES_TRANSACTION_ENTRY: FuturesTransactionEntry = {
-  entryPrice: 0,
   entryType: 'long',
   profitType: 'm1',
-  m1: DEFAULT_FUTURES_TRANSACTION_M,
-  m2: DEFAULT_FUTURES_TRANSACTION_M,
-  m3: DEFAULT_FUTURES_TRANSACTION_M,
+  m1: {
+    entrySwing: 5,
+    positionRatio: 50,
+    stopLossSwing: 5,
+    breakevenSwing: 2,
+  },
+  m2: {
+    entrySwing: 0,
+    positionRatio: 30,
+    stopLossSwing: 5,
+    breakevenSwing: 2,
+  },
+  m3: {
+    entrySwing: -5,
+    positionRatio: 20,
+    stopLossSwing: 5,
+    breakevenSwing: 2,
+  },
 }
 
 // 浮盈管理工具

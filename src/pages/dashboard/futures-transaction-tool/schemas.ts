@@ -2,11 +2,11 @@ import { z } from 'zod'
 import {
   futuresTransactionMSchema,
   futuresTransactionEntrySchema,
-  DEFAULT_FUTURES_TRANSACTION_M,
   futuresTransactionBasisSchema,
   FuturesTransactionMetaSchema,
   futuresTransactionProfitSchema,
   DEFAULT_FUTURES_TRANSACTION_PROFIT,
+  DEFAULT_FUTURES_TRANSACTION_ENTRY,
 } from '@/types/futures-transaction/futures-transaction'
 
 // basis form
@@ -40,23 +40,24 @@ export type BasisFormValues = z.infer<typeof basisFormSchema>
 
 // Entry Form
 export const mSchema = futuresTransactionMSchema.extend({
-  entryPrice: z.number().describe('开仓价格'),
-  position: z.number().describe('仓位'),
-  stopLossPrice: z.number().describe('止损单价格'),
-  breakevenPrice: z.number().describe('保本单价格'),
-  ristAmout: z.number().describe('风险金额'),
+  entryPrice: z
+    .number()
+    .describe('开仓价格 = m2开仓价格 + 上下浮动金额 * 期货每跳波动价格'),
+  position: z.number().describe('仓位 = 可交易总手数 * 仓位百分比数'),
+  stopLossPrice: z
+    .number()
+    .describe(
+      '做空时：止损单价格 = 开仓价格 + 止损价格波动 * 期货每跳波动价格;做多时：止损单价格 = 开仓价格 - 止损价格波动 * 期货每跳波动价格'
+    ),
+  breakevenPrice: z
+    .number()
+    .describe(
+      '做空时：保本单价格 = 开仓价格 - 保本价格波动 * 每跳波动价格;做多时：保本单价格 = 开仓价格 + 保本价格波动 * 每跳波动价格'
+    ),
+  ristAmout: z.number().describe('风险金额待定'),
 })
 
 export type MValues = z.infer<typeof mSchema>
-export const DEFAULT_M_VALUE: MValues = {
-  ...DEFAULT_FUTURES_TRANSACTION_M,
-  // 前端用于展示字段
-  entryPrice: 0,
-  position: 0,
-  stopLossPrice: 0,
-  breakevenPrice: 0,
-  ristAmout: 0,
-}
 
 export const entryFormSchema = futuresTransactionEntrySchema.extend({
   m1: mSchema,
@@ -67,12 +68,40 @@ export const entryFormSchema = futuresTransactionEntrySchema.extend({
 export type EntryFormValues = z.infer<typeof entryFormSchema>
 
 export const DEFAULT_ENTRY_VALUES: EntryFormValues = {
-  entryPrice: 0,
   entryType: 'long',
   profitType: 'm1',
-  m1: DEFAULT_M_VALUE,
-  m2: DEFAULT_M_VALUE,
-  m3: DEFAULT_M_VALUE,
+  m1: {
+    ...DEFAULT_FUTURES_TRANSACTION_ENTRY.m1,
+    entryPrice: 0,
+    position: 0,
+    stopLossPrice: 0,
+    breakevenPrice: 0,
+    ristAmout: 0,
+  },
+  m2: {
+    entrySwing: 0, // Add default values for base schema fields
+    positionRatio: 0,
+    stopLossSwing: 0,
+    breakevenSwing: 0,
+    ...DEFAULT_FUTURES_TRANSACTION_ENTRY.m2,
+    entryPrice: 100,
+    position: 0,
+    stopLossPrice: 0,
+    breakevenPrice: 0,
+    ristAmout: 0,
+  },
+  m3: {
+    entrySwing: 0, // Add default values for base schema fields
+    positionRatio: 0,
+    stopLossSwing: 0,
+    breakevenSwing: 0,
+    ...DEFAULT_FUTURES_TRANSACTION_ENTRY.m3,
+    entryPrice: 0,
+    position: 0,
+    stopLossPrice: 0,
+    breakevenPrice: 0,
+    ristAmout: 0,
+  },
 }
 
 // profit form

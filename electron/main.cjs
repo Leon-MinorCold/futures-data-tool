@@ -21,7 +21,7 @@ const createWindow = () => {
     },
   })
 
-  isDev && mainWindow.webContents.openDevTools()
+  // isDev && mainWindow.webContents.openDevTools()
 
   mainWindow.maximize() // 🚀 窗口占满整个屏幕
   mainWindow.show() // 显示窗口
