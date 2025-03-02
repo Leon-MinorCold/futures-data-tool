@@ -26,6 +26,8 @@ import {
 import { useFuturesTransactionStore } from '@/store/futuresTransaction'
 import { useEffect } from 'react'
 import FieldTip from '@/pages/dashboard/futures-transaction-tool/FieldTip'
+import { SaveDataAlertDialog } from '@/pages/dashboard/futures-transaction-tool/SaveDataAlertDialog'
+import { FuturesTransactionProfitType } from '@/types/futures-transaction/futures-transaction'
 
 const EntryForm = () => {
   const { setEntryFormData, setTab, formData, setTabDisabledStatus } =
@@ -169,9 +171,17 @@ const EntryForm = () => {
     setTabDisabledStatus('profit', false)
   }
 
-  // Todo: 保存数据操作
-  // 1. 保存数据前需要提示，保存后则不进入浮盈管理工具，直接保存到历史操作
-  const onSaveData = () => {}
+  const onSaveData = (profitType: FuturesTransactionProfitType) => {
+    const values = form.getValues()
+    const _data: EntryFormValues = {
+      ...values,
+      profitType,
+    }
+    setEntryFormData(_data)
+  }
+
+  // Todo: 保存数据成功后，应该重置表单 以及回到第一步
+  const onSaveDataSuccess = () => {}
 
   return (
     <Form {...form}>
@@ -333,9 +343,10 @@ const EntryForm = () => {
                 RiskAmount--待计算
               </TableCell>
               <TableCell className="border">
-                <Button size="sm" type="button" variant="ghost">
-                  保存数据
-                </Button>
+                <SaveDataAlertDialog
+                  onSaveData={() => onSaveData('m1')}
+                  onSuccess={onSaveDataSuccess}
+                />
               </TableCell>
             </TableRow>
 
@@ -465,9 +476,10 @@ const EntryForm = () => {
                 RiskAmount--待计算
               </TableCell>
               <TableCell className="border">
-                <Button size="sm" type="button" variant="ghost">
-                  保存数据
-                </Button>
+                <SaveDataAlertDialog
+                  onSaveData={() => onSaveData('m2')}
+                  onSuccess={onSaveDataSuccess}
+                />
               </TableCell>
             </TableRow>
 
@@ -577,9 +589,10 @@ const EntryForm = () => {
               </TableCell>
               <TableCell className="text-center">RiskAmount--待计算</TableCell>
               <TableCell className="border">
-                <Button size="sm" type="button" variant="ghost">
-                  保存数据
-                </Button>
+                <SaveDataAlertDialog
+                  onSaveData={() => onSaveData('m3')}
+                  onSuccess={onSaveDataSuccess}
+                />
               </TableCell>
             </TableRow>
           </TableBody>
