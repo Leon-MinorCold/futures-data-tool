@@ -1,13 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@/components/ui/table'
+import { Table, TableBody, TableRow, TableCell } from '@/components/ui/table'
 import {
   Form,
   FormControl,
@@ -27,9 +20,12 @@ import {
   ProfitFormValues,
 } from '@/pages/dashboard/futures-transaction-tool/schemas'
 import FieldTip from '@/pages/dashboard/futures-transaction-tool/FieldTip'
+import { useCreateFuturesTransaction } from '@/services/futures-transaction/create'
+import { toast } from 'sonner'
 
 const ProfitForm = () => {
-  const { setProfitFormData, formData } = useFuturesTransactionStore()
+  const { createFuturesTransaction, loading } = useCreateFuturesTransaction()
+  const { setProfitFormData, formData, reset } = useFuturesTransactionStore()
   const form = useForm<ProfitFormValues>({
     resolver: zodResolver(profitFormSchema),
     defaultValues: DEFAULT_PROFIT_FORM_VALUES,
@@ -89,12 +85,24 @@ const ProfitForm = () => {
     formData,
   ])
 
-  const errors = form.formState.errors
-  // console.log({ errors })
+  useEffect(() => {
+    const exitLotSize = maxTradableLots * (exitLotRatio / 100)
+    setValue('exitLotSize', exitLotSize)
+  }, [maxTradableLots, setValue, exitLotRatio])
 
   const onSubmit = async (values: ProfitFormValues) => {
-    console.log(values)
-    setProfitFormData(values)
+    try {
+      setProfitFormData(values)
+      const data = {
+        ...formData,
+        profit: values,
+      }
+      await createFuturesTransaction(data)
+      reset()
+    } catch (e) {
+      console.log(e)
+      toast.error('保存失败')
+    }
   }
 
   return (
@@ -121,6 +129,7 @@ const ProfitForm = () => {
                           }
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -152,6 +161,7 @@ const ProfitForm = () => {
                           }
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -175,6 +185,7 @@ const ProfitForm = () => {
                             }
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -210,6 +221,7 @@ const ProfitForm = () => {
                           }
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -229,7 +241,7 @@ const ProfitForm = () => {
               </TableCell>
               <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
                 <div className="flex justify-center items-center gap-x-1">
-                  <span> 盈亏平衡价格（不含手续费）</span>
+                  <span>盈亏平衡价格（不含手续费）</span>
                   <FieldTip field="breakevenPrice" />
                 </div>
               </TableCell>
@@ -264,6 +276,7 @@ const ProfitForm = () => {
                           }
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -288,7 +301,9 @@ const ProfitForm = () => {
         </Table>
 
         <div className="flex justify-end mt-4">
-          <Button type="submit">保存数据</Button>
+          <Button type="submit" loading={loading} disabled={loading}>
+            保存数据
+          </Button>
         </div>
       </form>
     </Form>

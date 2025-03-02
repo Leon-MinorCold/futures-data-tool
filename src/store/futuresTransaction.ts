@@ -31,6 +31,7 @@ type FuturesTransactionStore = {
   formData: TransactionValues
   tab: Tab
   tabDisabledStatus: Record<Tab, boolean>
+  reset: () => void
   setEntryType: (type: FuturesTransactionEntryType) => void
   setBasisFormData: (data: BasisFormValues) => void
   setEntryFormData: (data: EntryFormValues) => void
@@ -66,11 +67,11 @@ const initialState: TransactionValues = {
 export const useFuturesTransactionStore = create<FuturesTransactionStore>(
   (set, get) => ({
     formData: { ...initialState },
-    tab: 'entry',
+    tab: 'basis',
     tabDisabledStatus: {
       basis: false,
       entry: false,
-      profit: true,
+      profit: false,
     },
     setTab(tab: Tab) {
       set({
@@ -122,9 +123,15 @@ export const useFuturesTransactionStore = create<FuturesTransactionStore>(
       }))
     },
 
-    resetForm: () => {
+    reset: () => {
       set({
         formData: { ...initialState },
+        tab: 'basis',
+        tabDisabledStatus: {
+          basis: false,
+          entry: true,
+          profit: true,
+        },
       })
     },
 

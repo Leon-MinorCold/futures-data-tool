@@ -120,27 +120,27 @@ export const DEFAULT_FUTURES_TRANSACTION_ENTRY: FuturesTransactionEntry = {
 export const futuresTransactionProfitSchema = z.object({
   avgPrice: z
     .number()
-    .nonnegative('平均价格必须大于等于0')
+    .positive('平均价格必须大于0')
     .default(0)
     .describe('平均价格'),
   marketPrice: z
     .number()
-    .nonnegative('当前价格必须大于等于0')
+    .positive('当前价格必须大于0')
     .default(0)
     .describe('当前市场价格'),
   exitLotPrice: z
     .number()
-    .nonnegative('出仓价格必须大于等于0')
+    .positive('出仓价格必须大于0')
     .default(0)
     .describe('出仓价格'),
   exitLotRatio: z
     .number()
-    .nonnegative('出仓比例必须大于等于0')
+    .positive('出仓比例必须大于0')
     .default(0)
     .describe('出仓比例'),
   current20EMA: z
     .number()
-    .nonnegative('当前20EMA价格必须大于等于0')
+    .positive('当前20EMA价格必须大于0')
     .default(0)
     .describe('当前20EMA价格'),
 })
@@ -150,11 +150,11 @@ export type FuturesTransactionProfit = z.infer<
 >
 
 export const DEFAULT_FUTURES_TRANSACTION_PROFIT: FuturesTransactionProfit = {
-  avgPrice: 0,
-  marketPrice: 0,
-  exitLotPrice: 0,
-  exitLotRatio: 0,
-  current20EMA: 0,
+  avgPrice: 10,
+  marketPrice: 5,
+  exitLotPrice: 5,
+  exitLotRatio: 10,
+  current20EMA: 5,
 }
 
 export const futuresTransactionSchema = z
