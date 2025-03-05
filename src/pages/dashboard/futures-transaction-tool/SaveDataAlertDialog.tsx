@@ -13,21 +13,20 @@ import {
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useCreateFuturesTransaction } from '@/services/futures-transaction/create'
-import { useFuturesTransactionStore } from '@/store/futuresTransaction'
+import { TransactionStoreValues } from '@/store/futuresTransaction'
 
 interface Props {
-  onSaveData: () => void
+  onSaveData: () => TransactionStoreValues
   onSuccess?: () => void
 }
 
 export function SaveDataAlertDialog({ onSaveData, onSuccess }: Props) {
   const [open, setOpen] = useState(false)
-  const { formData } = useFuturesTransactionStore()
   const { createFuturesTransaction, loading } = useCreateFuturesTransaction()
 
   const save = async () => {
     try {
-      onSaveData()
+      const formData = onSaveData()
       onSuccess?.()
       await createFuturesTransaction(formData)
     } catch (error) {

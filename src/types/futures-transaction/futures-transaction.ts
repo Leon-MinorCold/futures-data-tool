@@ -19,6 +19,10 @@ export const FuturesTransactionMetaSchema = futuresSchema
   })
   .extend({
     commission: z.number().nonnegative().describe('期货手续费'),
+    tickValue: z
+      .number()
+      .positive('每跳波动价格必须大于0')
+      .describe('每跳波动价格 = 最小价格波动 * 交易规模'),
   })
 
 export type FuturesTransactionMeta = z.infer<
@@ -30,6 +34,7 @@ export const DEFAULT_FUTURES_TRANSACTION_META: FuturesTransactionMeta = {
   minPriceTick: 0,
   size: 0,
   commission: 0,
+  tickValue: 0,
 }
 
 // 基础风险控制配置
@@ -83,6 +88,10 @@ export const futuresTransactionEntrySchema = z.object({
   entryType: FuturesTransactionEntryEnum.describe(
     '交易类型：做空(short)or做多(long)'
   ),
+  entryPrice: z
+    .number()
+    .positive('开仓价格必须大于0')
+    .describe('开仓价格保持与M2开仓价格同步'),
   profitType: FuturesTransactionProfitEnum.describe('浮盈计算方式'),
   m1: futuresTransactionMSchema,
   m2: futuresTransactionMSchema.optional(),
@@ -95,6 +104,7 @@ export type FuturesTransactionEntry = z.infer<
 
 export const DEFAULT_FUTURES_TRANSACTION_ENTRY: FuturesTransactionEntry = {
   entryType: 'long',
+  entryPrice: 0,
   profitType: 'm1',
   m1: {
     entrySwing: 5,

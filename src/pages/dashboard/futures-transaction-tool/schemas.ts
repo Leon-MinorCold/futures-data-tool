@@ -7,6 +7,8 @@ import {
   futuresTransactionProfitSchema,
   DEFAULT_FUTURES_TRANSACTION_PROFIT,
   DEFAULT_FUTURES_TRANSACTION_ENTRY,
+  DEFAULT_FUTURES_TRANSACTION_META,
+  DEFAULT_FUTURES_TRANSACTION_BASIS,
 } from '@/types/futures-transaction/futures-transaction'
 
 // basis form
@@ -28,15 +30,25 @@ export const basisFormSchema = z.object({
     actualTickValue: z
       .number()
       .describe('实际交易每跳波动价格 = 期货每跳波动价格 * 可交易总手数'),
-    tickValue: z
-      .number()
-      .describe('期货的每跳波动价格 = 期货最小价格波动 * 期货交易规模'),
   }),
   futuresId: z.string().min(1, '期货数据不能为空'),
   futuresMeta: FuturesTransactionMetaSchema,
 })
 
 export type BasisFormValues = z.infer<typeof basisFormSchema>
+
+export const DEFAULT_BASIS_FORM_VALUES: BasisFormValues = {
+  basis: {
+    maxTradableLots: 0,
+    usedMargin: 0,
+    riskControl: 0,
+    actualTickValue: 0,
+    captitalTrading: 0,
+    ...DEFAULT_FUTURES_TRANSACTION_BASIS,
+  },
+  futuresId: '',
+  futuresMeta: DEFAULT_FUTURES_TRANSACTION_META,
+}
 
 // Entry Form
 export const mSchema = futuresTransactionMSchema.extend({
@@ -70,6 +82,7 @@ export type EntryFormValues = z.infer<typeof entryFormSchema>
 export const DEFAULT_ENTRY_VALUES: EntryFormValues = {
   entryType: 'long',
   profitType: 'm1',
+  entryPrice: 200,
   m1: {
     ...DEFAULT_FUTURES_TRANSACTION_ENTRY.m1,
     entryPrice: 0,

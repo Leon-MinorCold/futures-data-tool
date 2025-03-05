@@ -23,143 +23,50 @@ import {
   entryFormSchema,
   DEFAULT_ENTRY_VALUES,
 } from './schemas'
-import { useFuturesTransactionStore } from '@/store/futuresTransaction'
+import {
+  TransactionStoreValues,
+  useFuturesTransactionStore,
+} from '@/store/futuresTransaction'
 import { useEffect } from 'react'
 import FieldTip from '@/pages/dashboard/futures-transaction-tool/FieldTip'
 import { SaveDataAlertDialog } from '@/pages/dashboard/futures-transaction-tool/SaveDataAlertDialog'
 import { FuturesTransactionProfitType } from '@/types/futures-transaction/futures-transaction'
+import { entryCalculateDerivedValues } from '@/lib/futures-transaction'
 
 const EntryForm = () => {
-  const { setEntryFormData, setTab, formData, setTabDisabledStatus } =
-    useFuturesTransactionStore()
+  const {
+    setEntryFormData,
+    setTab,
+    formData,
+    reset: resetStore,
+  } = useFuturesTransactionStore()
   const form = useForm<EntryFormValues>({
     resolver: zodResolver(entryFormSchema),
     defaultValues: DEFAULT_ENTRY_VALUES,
   })
 
-  const { maxTradableLots, tickValue } = formData.basis
+  const { watch, setValue, reset, getValues } = form
 
-  const { watch, setValue } = form
-  const entryPrice = watch('m2.entryPrice')
-  const entryType = watch('entryType')
-  const m1 = watch('m1')
-  const m2 = watch('m2')
-  const m3 = watch('m3')
+  const watchedFormValues = watch()
 
-  // 计算 m1, m2, m3 的相关值
-  const calculateValues = () => {
-    const m2EntryPrice = entryPrice
-
-    // 计算 m1 和 m3 的开仓价格
-    // 开仓价格 = 开仓价格 + 开仓波动价格 * 每跳波动价格
-    const m1EntryPrice = entryPrice + m1.entrySwing * tickValue
-    const m3EntryPrice = entryPrice + m3.entrySwing * tickValue
-
-    // 计算 m1, m2, m3 的 position
-    // 仓位 = 可交易总手数 * (仓位百分比/100)
-    const m1Position = maxTradableLots * (m1.positionRatio / 100)
-    const m2Position = maxTradableLots * (m2.positionRatio / 100)
-    const m3Position = maxTradableLots * (m3.positionRatio / 100)
-
-    // 计算止损单价格和保本单价格
-    const m1StopLossPrice =
-      entryType === 'short'
-        ? m1EntryPrice - tickValue * m1.stopLossSwing
-        : m1EntryPrice + tickValue * m1.stopLossSwing
-
-    const m1BreakevenPrice =
-      entryType === 'short'
-        ? m1EntryPrice + tickValue * m1.breakevenSwing
-        : m1EntryPrice - tickValue * m1.breakevenSwing
-
-    const m2StopLossPrice =
-      entryType === 'short'
-        ? m2EntryPrice - tickValue * m2.stopLossSwing
-        : m2EntryPrice + tickValue * m2.stopLossSwing
-
-    const m2BreakevenPrice =
-      entryType === 'short'
-        ? m2EntryPrice + tickValue * m2.breakevenSwing
-        : m2EntryPrice - tickValue * m2.breakevenSwing
-
-    const m3StopLossPrice =
-      entryType === 'short'
-        ? m3EntryPrice - tickValue * m3.stopLossSwing
-        : m3EntryPrice + tickValue * m3.stopLossSwing
-
-    const m3BreakevenPrice =
-      entryType === 'short'
-        ? m3EntryPrice + tickValue * m3.breakevenSwing
-        : m3EntryPrice - tickValue * m3.breakevenSwing
-
-    return {
-      m1EntryPrice,
-      m2EntryPrice,
-      m3EntryPrice,
-      m1Position,
-      m2Position,
-      m3Position,
-      m1StopLossPrice,
-      m1BreakevenPrice,
-      m2StopLossPrice,
-      m2BreakevenPrice,
-      m3StopLossPrice,
-      m3BreakevenPrice,
-    }
-  }
+  useEffect(() => {
+    const calculatedFormValues = entryCalculateDerivedValues({
+      entryFormValues: watchedFormValues,
+      basisFormValues: {
+        basis: formData.basis,
+        futuresId: formData.futuresId,
+        futuresMeta: formData.futuresMeta,
+      },
+    })
+    reset({
+      ...calculatedFormValues,
+    })
+  }, [JSON.stringify(watchedFormValues), formData])
 
   useEffect(() => {
     const entryType = formData.entry.entryType
     setValue('entryType', entryType)
   }, [formData.entry.entryType, setValue])
-
-  const {
-    m1EntryPrice,
-    m2EntryPrice,
-    m3EntryPrice,
-    m1Position,
-    m2Position,
-    m3Position,
-    m1StopLossPrice,
-    m1BreakevenPrice,
-    m2StopLossPrice,
-    m2BreakevenPrice,
-    m3StopLossPrice,
-    m3BreakevenPrice,
-  } = calculateValues()
-
-  useEffect(() => {
-    setValue('m1.entryPrice', m1EntryPrice)
-    setValue('m1.position', m1Position)
-    setValue('m1.stopLossPrice', m1StopLossPrice)
-    setValue('m1.breakevenPrice', m1BreakevenPrice)
-
-    setValue('m2.entryPrice', m2EntryPrice)
-    setValue('m2.position', m2Position)
-    setValue('m2.stopLossPrice', m2StopLossPrice)
-    setValue('m2.breakevenPrice', m2BreakevenPrice)
-
-    setValue('m3.entryPrice', m3EntryPrice)
-    setValue('m3.position', m3Position)
-    setValue('m3.stopLossPrice', m3StopLossPrice)
-    setValue('m3.breakevenPrice', m3BreakevenPrice)
-  }, [
-    m1EntryPrice,
-    m1Position,
-    m1StopLossPrice,
-    m1BreakevenPrice,
-    m2EntryPrice,
-    m2Position,
-    m2StopLossPrice,
-    m2BreakevenPrice,
-    m3EntryPrice,
-    m3Position,
-    m3StopLossPrice,
-    m3BreakevenPrice,
-    setValue,
-  ])
-
-  // const errors = form.formState.errors
 
   const onSubmit = (data: EntryFormValues) => {
     const _data: EntryFormValues = {
@@ -168,20 +75,29 @@ const EntryForm = () => {
     }
     setEntryFormData(_data)
     setTab('profit')
-    setTabDisabledStatus('profit', false)
   }
 
-  const onSaveData = (profitType: FuturesTransactionProfitType) => {
+  const onSaveData = (
+    profitType: FuturesTransactionProfitType
+  ): TransactionStoreValues => {
     const values = form.getValues()
     const _data: EntryFormValues = {
       ...values,
       profitType,
     }
+
     setEntryFormData(_data)
+    const _formData: TransactionStoreValues = {
+      ...formData,
+      entry: _data,
+    }
+    return _formData
   }
 
   // Todo: 保存数据成功后，应该重置表单 以及回到第一步
-  const onSaveDataSuccess = () => {}
+  const onSaveDataSuccess = () => {
+    resetStore()
+  }
 
   return (
     <Form {...form}>
@@ -259,7 +175,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="text-center">
-                {m1EntryPrice.toFixed(2)}元
+                {getValues('m1.entryPrice')}元
               </TableCell>
               <TableCell className="border">
                 <FormField
@@ -285,7 +201,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="border text-center">
-                {m1Position.toFixed(2)}手
+                {getValues('m1.position')}手
               </TableCell>
               <TableCell className="border">
                 <FormField
@@ -311,7 +227,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="text-center">
-                {m1StopLossPrice.toFixed(2)}元
+                {getValues('m1.stopLossPrice')}元
               </TableCell>
               <TableCell className="border">
                 <FormField
@@ -337,7 +253,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="text-center">
-                {m1BreakevenPrice.toFixed(2)}元
+                {getValues('m1.breakevenPrice')}元
               </TableCell>
               <TableCell className="border text-center">
                 RiskAmount--待计算
@@ -353,28 +269,11 @@ const EntryForm = () => {
             <TableRow>
               <TableCell className="border text-center">
                 {form.getValues('m2.entrySwing')}元
-                {/* <FormField
-                  control={form.control}
-                  name="m2.entrySwing"
-                  render={({ field }) => (
-                    <FormItem className="w-24">
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(event) =>
-                            field.onChange(+event.target.value)
-                          }
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                /> */}
               </TableCell>
               <TableCell className="border">
                 <FormField
                   control={form.control}
-                  name="m2.entryPrice"
+                  name="entryPrice"
                   render={({ field }) => (
                     <FormItem className="w-24">
                       <div className="flex justify-center items-center gap-x-1">
@@ -418,7 +317,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="border text-center">
-                {m2Position.toFixed(2)}手
+                {getValues('m2.position')}手
               </TableCell>
               <TableCell className="border">
                 <FormField
@@ -444,7 +343,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="border text-center">
-                {m2StopLossPrice.toFixed(2)}元
+                {getValues('m2.stopLossPrice')}元
               </TableCell>
               <TableCell className="border">
                 <FormField
@@ -470,7 +369,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="border text-center">
-                {m2BreakevenPrice.toFixed(2)}元
+                {getValues('m2.breakevenPrice')}元
               </TableCell>
               <TableCell className="border text-center">
                 RiskAmount--待计算
@@ -508,7 +407,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="border text-center">
-                {m3EntryPrice.toFixed(2)}元
+                {getValues('m3.entryPrice')}元
               </TableCell>
               <TableCell className="border">
                 <FormField
@@ -534,7 +433,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="border text-center">
-                {m3Position.toFixed(2)}手
+                {getValues('m3.position')}手
               </TableCell>
               <TableCell className="border">
                 <FormField
@@ -560,7 +459,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="border text-center">
-                {m3StopLossPrice.toFixed(2)}元
+                {getValues('m3.stopLossPrice')}元
               </TableCell>
               <TableCell className="border">
                 <FormField
@@ -585,7 +484,7 @@ const EntryForm = () => {
                 />
               </TableCell>
               <TableCell className="border text-center">
-                {m3BreakevenPrice.toFixed(2)}元
+                {getValues('m3.breakevenPrice')}元
               </TableCell>
               <TableCell className="text-center">RiskAmount--待计算</TableCell>
               <TableCell className="border">
@@ -597,7 +496,10 @@ const EntryForm = () => {
             </TableRow>
           </TableBody>
         </Table>
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-end mt-4 gap-x-2">
+          <Button type="button" onClick={() => setTab('basis')}>
+            上一步
+          </Button>
           <Button type="submit">进入浮盈管理</Button>
         </div>
       </form>

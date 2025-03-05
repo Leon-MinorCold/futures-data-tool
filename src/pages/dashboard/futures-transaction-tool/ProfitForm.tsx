@@ -9,9 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
-
 import { zodResolver } from '@hookform/resolvers/zod'
-
 import { useFuturesTransactionStore } from '@/store/futuresTransaction'
 import { useEffect } from 'react'
 import {
@@ -22,73 +20,33 @@ import {
 import FieldTip from '@/pages/dashboard/futures-transaction-tool/FieldTip'
 import { useCreateFuturesTransaction } from '@/services/futures-transaction/create'
 import { toast } from 'sonner'
+import { profitCalculateDerivedValues } from '@/lib/futures-transaction'
 
 const ProfitForm = () => {
   const { createFuturesTransaction, loading } = useCreateFuturesTransaction()
-  const { setProfitFormData, formData, reset } = useFuturesTransactionStore()
+  const { setProfitFormData, formData, reset, setTab } =
+    useFuturesTransactionStore()
   const form = useForm<ProfitFormValues>({
     resolver: zodResolver(profitFormSchema),
     defaultValues: DEFAULT_PROFIT_FORM_VALUES,
   })
-  const { watch, setValue } = form
+  const { watch, getValues, reset: profitFormReset } = form
 
-  const { tickValue, actualTickValue, maxTradableLots, margin } = formData.basis
-  const { commission } = formData.futuresMeta
-
-  const avgPrice = watch('avgPrice')
-  const marketPrice = watch('marketPrice')
-  const exitLotRatio = watch('exitLotRatio')
-  const current20EMA = watch('current20EMA')
-
-  const calculateValues = () => {
-    const takeProfitPrice = avgPrice - marketPrice
-    const unrealizedProfit = takeProfitPrice * tickValue
-    const unrealizedProfitRatio =
-      (takeProfitPrice * actualTickValue) / (margin * maxTradableLots)
-    const exitLotSize = maxTradableLots * (exitLotRatio / 100)
-    const breakevenPrice = 2 * avgPrice - marketPrice
-    const breakeven20EMADelta = breakevenPrice - current20EMA
-    return {
-      takeProfitPrice,
-      unrealizedProfit,
-      unrealizedProfitRatio,
-      exitLotSize,
-      breakevenPrice,
-      breakeven20EMADelta,
-    }
-  }
-
-  const {
-    takeProfitPrice,
-    unrealizedProfit,
-    unrealizedProfitRatio,
-    exitLotSize,
-    breakevenPrice,
-    breakeven20EMADelta,
-  } = calculateValues()
+  const watchedFormValues = watch()
 
   useEffect(() => {
-    setValue('takeProfitPrice', takeProfitPrice)
-    setValue('unrealizedProfit', unrealizedProfit)
-    setValue('unrealizedProfitRatio', unrealizedProfitRatio)
-    setValue('exitLotSize', exitLotSize)
-    setValue('breakevenPrice', breakevenPrice)
-    setValue('breakeven20EMADelta', breakeven20EMADelta)
-  }, [
-    takeProfitPrice,
-    unrealizedProfit,
-    unrealizedProfitRatio,
-    exitLotSize,
-    breakevenPrice,
-    breakeven20EMADelta,
-    setValue,
-    formData,
-  ])
-
-  useEffect(() => {
-    const exitLotSize = maxTradableLots * (exitLotRatio / 100)
-    setValue('exitLotSize', exitLotSize)
-  }, [maxTradableLots, setValue, exitLotRatio])
+    const calculatedFormValues = profitCalculateDerivedValues({
+      profitFormValues: watchedFormValues,
+      basisFormValues: {
+        basis: formData.basis,
+        futuresId: formData.futuresId,
+        futuresMeta: formData.futuresMeta,
+      },
+    })
+    profitFormReset({
+      ...calculatedFormValues,
+    })
+  }, [JSON.stringify(watchedFormValues), formData])
 
   const onSubmit = async (values: ProfitFormValues) => {
     try {
@@ -138,7 +96,9 @@ const ProfitForm = () => {
               <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
                 手续费
               </TableCell>
-              <TableCell className="text-center">{commission}元</TableCell>
+              <TableCell className="text-center">
+                {formData.futuresMeta.commission}元
+              </TableCell>
             </TableRow>
 
             <TableRow>
@@ -192,7 +152,9 @@ const ProfitForm = () => {
                   <FieldTip field="exitLotSize" />
                 </div>
               </TableCell>
-              <TableCell className="text-center">{exitLotSize}手</TableCell>
+              <TableCell className="text-center">
+                {getValues('exitLotSize')}手
+              </TableCell>
             </TableRow>
 
             <TableRow>
@@ -202,7 +164,9 @@ const ProfitForm = () => {
                   <FieldTip field="takeProfitPrice" />
                 </div>
               </TableCell>
-              <TableCell className="text-center">{takeProfitPrice}元</TableCell>
+              <TableCell className="text-center">
+                {getValues('takeProfitPrice')}元
+              </TableCell>
               <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
                 出仓价格
               </TableCell>
@@ -237,7 +201,7 @@ const ProfitForm = () => {
                 </div>
               </TableCell>
               <TableCell className="text-center">
-                {unrealizedProfit}元
+                {getValues('unrealizedProfit')}元
               </TableCell>
               <TableCell className="bg-slate-100 text-center dark:bg-gray-600">
                 <div className="flex justify-center items-center gap-x-1">
@@ -245,7 +209,9 @@ const ProfitForm = () => {
                   <FieldTip field="breakevenPrice" />
                 </div>
               </TableCell>
-              <TableCell className="text-center">{breakevenPrice}元</TableCell>
+              <TableCell className="text-center">
+                {getValues('breakevenPrice')}元
+              </TableCell>
             </TableRow>
 
             <TableRow>
@@ -256,7 +222,9 @@ const ProfitForm = () => {
                 </div>
               </TableCell>
               <TableCell className="text-center">
-                {isNaN(unrealizedProfitRatio) ? 0 : unrealizedProfitRatio}
+                {isNaN(getValues('unrealizedProfitRatio'))
+                  ? 0
+                  : getValues('unrealizedProfitRatio')}
               </TableCell>
               <TableCell className="bg-slate-100 text-center  dark:bg-gray-600">
                 当前20EMA价格
@@ -294,13 +262,16 @@ const ProfitForm = () => {
                 </div>
               </TableCell>
               <TableCell className="text-center">
-                {breakeven20EMADelta}元
+                {getValues('breakeven20EMADelta')}元
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
 
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-end mt-4 gap-x-2">
+          <Button type="button" onClick={() => setTab('entry')}>
+            回到上一步
+          </Button>
           <Button type="submit" loading={loading} disabled={loading}>
             保存数据
           </Button>

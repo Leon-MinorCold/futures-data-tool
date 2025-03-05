@@ -19,7 +19,7 @@ const messages = {
   minPriceTick:
     basisFormSchema.shape.futuresMeta.shape.minPriceTick.description,
   usedMargin: basisFormSchema.shape.basis.shape.usedMargin.description,
-  tickValue: basisFormSchema.shape.basis.shape.tickValue.description,
+  tickValue: basisFormSchema.shape.futuresMeta.shape.tickValue.description,
   riskControl: basisFormSchema.shape.basis.shape.riskControl.description,
 
   // entry

@@ -7,6 +7,7 @@ import {
   profitFormSchema,
   ProfitFormValues,
   DEFAULT_PROFIT_FORM_VALUES,
+  DEFAULT_BASIS_FORM_VALUES,
 } from '@/pages/dashboard/futures-transaction-tool/schemas'
 import {
   FuturesTransactionEntryType,
@@ -18,17 +19,17 @@ import { create } from 'zustand'
 const TabEnum = z.enum(['basis', 'entry', 'profit'])
 export type Tab = z.infer<typeof TabEnum>
 
-const transactionSchema = z
+const transactionStoreSchema = z
   .object({
     entry: entryFormSchema,
     profit: profitFormSchema,
   })
   .merge(basisFormSchema)
 
-type TransactionValues = z.infer<typeof transactionSchema>
+export type TransactionStoreValues = z.infer<typeof transactionStoreSchema>
 
 type FuturesTransactionStore = {
-  formData: TransactionValues
+  formData: TransactionStoreValues
   tab: Tab
   tabDisabledStatus: Record<Tab, boolean>
   reset: () => void
@@ -41,25 +42,9 @@ type FuturesTransactionStore = {
   setTabDisabledStatus: (tab: Tab, status: boolean) => void
 }
 
-const initialState: TransactionValues = {
-  futuresId: '',
-  futuresMeta: {
-    minPriceTick: 0,
-    name: '',
-    size: 0,
-    commission: 0,
-  },
-  basis: {
-    totalCapital: 0,
-    capitalRatio: 0,
-    captitalTrading: 0,
-    margin: 0,
-    maxTradableLots: 0,
-    usedMargin: 0,
-    riskControl: 0,
-    actualTickValue: 0,
-    tickValue: 0,
-  },
+const initialState: TransactionStoreValues = {
+  ...DEFAULT_BASIS_FORM_VALUES,
+  basis: DEFAULT_BASIS_FORM_VALUES.basis,
   entry: DEFAULT_ENTRY_VALUES,
   profit: DEFAULT_PROFIT_FORM_VALUES,
 }
@@ -69,9 +54,9 @@ export const useFuturesTransactionStore = create<FuturesTransactionStore>(
     formData: { ...initialState },
     tab: 'basis',
     tabDisabledStatus: {
-      basis: false,
-      entry: false,
-      profit: false,
+      basis: true,
+      entry: true,
+      profit: true,
     },
     setTab(tab: Tab) {
       set({
@@ -128,7 +113,7 @@ export const useFuturesTransactionStore = create<FuturesTransactionStore>(
         formData: { ...initialState },
         tab: 'basis',
         tabDisabledStatus: {
-          basis: false,
+          basis: true,
           entry: true,
           profit: true,
         },

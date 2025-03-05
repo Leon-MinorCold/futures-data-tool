@@ -11,7 +11,7 @@ import { futuresTransactionKeys } from '@/constants'
 export const getFuturesTransactions = (
   params: GetFuturesTransactionDto
 ): Promise<PaginatedResponse<FuturesTransaction[]>> =>
-  request.get('/futures-transaction-', {
+  request.get('/futures-transaction', {
     params,
   })
 
@@ -25,9 +25,10 @@ export const useFuturesTransactions = (filters: GetFuturesTransactionDto) => {
     queryKey: futuresTransactionKeys.list(filters),
     queryFn: async () => {
       const { list, pagination } = await getFuturesTransactions(filters)
-      const _list = list.map((item) => futuresTransactionSchema.parse(item))
+      // FixMe: 这里parse之后没数据
+      // const _list = list.map((item) => futuresTransactionSchema.parse(item))
       return {
-        list: _list,
+        list,
         pagination,
       }
     },
