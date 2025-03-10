@@ -34,8 +34,7 @@ export const futuresTransactionKeys = {
 
   lists: (): QueryKey => [...futuresTransactionKeys.all(), 'list'] as const,
   list: (filter: UserListDto): QueryKey => [
-    ...futuresTransactionKeys.all(),
-    'list',
+    ...futuresTransactionKeys.lists(),
     filter,
   ],
 

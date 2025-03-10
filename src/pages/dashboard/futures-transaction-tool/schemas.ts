@@ -92,10 +92,6 @@ export const DEFAULT_ENTRY_VALUES: EntryFormValues = {
     ristAmout: 0,
   },
   m2: {
-    entrySwing: 0, // Add default values for base schema fields
-    positionRatio: 0,
-    stopLossSwing: 0,
-    breakevenSwing: 0,
     ...DEFAULT_FUTURES_TRANSACTION_ENTRY.m2,
     entryPrice: 100,
     position: 0,
@@ -104,10 +100,6 @@ export const DEFAULT_ENTRY_VALUES: EntryFormValues = {
     ristAmout: 0,
   },
   m3: {
-    entrySwing: 0, // Add default values for base schema fields
-    positionRatio: 0,
-    stopLossSwing: 0,
-    breakevenSwing: 0,
     ...DEFAULT_FUTURES_TRANSACTION_ENTRY.m3,
     entryPrice: 0,
     position: 0,
@@ -148,3 +140,15 @@ export const DEFAULT_PROFIT_FORM_VALUES: ProfitFormValues = {
   breakevenPrice: 0,
   breakeven20EMADelta: 0,
 }
+
+// 扩展后的总体类型
+export const extendFuturesTransactionSchema = z
+  .object({
+    entry: entryFormSchema,
+    profit: profitFormSchema,
+  })
+  .merge(basisFormSchema)
+
+export type ExtendFuturesTransaction = z.infer<
+  typeof extendFuturesTransactionSchema
+>

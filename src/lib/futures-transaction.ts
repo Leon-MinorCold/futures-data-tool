@@ -1,26 +1,21 @@
 import {
   BasisFormValues,
   EntryFormValues,
-  MValues,
+  ExtendFuturesTransaction,
   ProfitFormValues,
 } from '@/pages/dashboard/futures-transaction-tool/schemas'
+import {
+  FuturesTransaction,
+  FuturesTransactionMeta,
+} from '@/types/futures-transaction/futures-transaction'
 
-interface FuturesCalculateDerivedValuesParams {
-  size: number // 期货交易规模
-  minPriceTick: number // 期货最小价格波动
-  precision?: number // 精度
-}
-
-interface FuturesCalculateDerivedValuesReturn {
-  tickValue: number // 每跳波动价格
-}
-
-export const futuresCalculateDerivedValues = ({
-  size = 0,
-  minPriceTick,
-  precision = 6,
-}: FuturesCalculateDerivedValuesParams): FuturesCalculateDerivedValuesReturn => {
+export const futuresMetaCalculateDerivedValues = (
+  data: Omit<FuturesTransactionMeta, 'tickValue'>,
+  precision = 6
+): FuturesTransactionMeta => {
+  const { size, minPriceTick } = data
   return {
+    ...data,
     tickValue: +(size * minPriceTick).toFixed(precision),
   }
 }
@@ -215,4 +210,80 @@ export const profitCalculateDerivedValues = ({
   }
 
   return profitFormValues
+}
+
+//  期货列表数据转换成表格数据
+export const extendFuturesTransactionItem = (
+  item: FuturesTransaction
+): ExtendFuturesTransaction => {
+  const newItem: ExtendFuturesTransaction = {
+    ...item,
+    basis: {
+      maxTradableLots: 0,
+      usedMargin: 0,
+      riskControl: 0,
+      actualTickValue: 0,
+      captitalTrading: 0,
+      ...item.basis,
+    },
+    entry: {
+      ...item.entry,
+      m1: {
+        entryPrice: 0,
+        position: 0,
+        stopLossPrice: 0,
+        breakevenPrice: 0,
+        ristAmout: 0,
+        ...item.entry.m1,
+      },
+      m2: {
+        entryPrice: 0,
+        position: 0,
+        stopLossPrice: 0,
+        breakevenPrice: 0,
+        ristAmout: 0,
+        ...item.entry.m2,
+      },
+      m3: {
+        entryPrice: 0,
+        position: 0,
+        stopLossPrice: 0,
+        breakevenPrice: 0,
+        ristAmout: 0,
+        ...item.entry.m3,
+      },
+    },
+    profit: {
+      takeProfitPrice: 0,
+      unrealizedProfit: 0,
+      unrealizedProfitRatio: 0,
+      exitLotSize: 0,
+      breakevenPrice: 0,
+      breakeven20EMADelta: 0,
+      ...item.profit,
+    },
+  }
+  const futuresMeta = futuresMetaCalculateDerivedValues(newItem.futuresMeta)
+  newItem.futuresMeta = futuresMeta
+
+  const basisValues = basisCalculateDerivedValues({
+    formValues: {
+      basis: newItem.basis,
+      futuresId: newItem.futuresId,
+      futuresMeta: newItem.futuresMeta,
+    },
+  })
+  const entryValues = entryCalculateDerivedValues({
+    entryFormValues: newItem.entry,
+    basisFormValues: basisValues,
+  })
+  const profitValues = profitCalculateDerivedValues({
+    profitFormValues: newItem.profit,
+    basisFormValues: basisValues,
+  })
+
+  newItem.basis = basisValues.basis
+  newItem.entry = entryValues
+  newItem.profit = profitValues
+  return newItem
 }

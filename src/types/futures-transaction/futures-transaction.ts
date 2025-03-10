@@ -94,8 +94,8 @@ export const futuresTransactionEntrySchema = z.object({
     .describe('开仓价格保持与M2开仓价格同步'),
   profitType: FuturesTransactionProfitEnum.describe('浮盈计算方式'),
   m1: futuresTransactionMSchema,
-  m2: futuresTransactionMSchema.optional(),
-  m3: futuresTransactionMSchema.optional(),
+  m2: futuresTransactionMSchema,
+  m3: futuresTransactionMSchema,
 })
 
 export type FuturesTransactionEntry = z.infer<
@@ -200,8 +200,12 @@ export class FuturesTransaction extends createZodDto(
   futuresTransactionSchema
 ) {}
 
-export class GetFuturesTransactionDto extends createZodDto(
+export class GetAllFuturesTransactionDto extends createZodDto(
   getFuturesTransactionSchema
+) {}
+
+export class GetPaginatedFuturesTransactionDto extends createZodDto(
+  getFuturesTransactionSchema.merge(paginationSchema)
 ) {}
 
 export class CreateFuturesTransactionDto extends createZodDto(
