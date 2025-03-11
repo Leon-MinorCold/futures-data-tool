@@ -33,6 +33,8 @@ import { usePaginatedFuturesTransactions } from '@/services/futures-transaction/
 import { FuturesTransaction } from '@/types/futures-transaction/futures-transaction'
 import { futuresTransactionCalculation } from './utils'
 import { DeleteAlertDialog } from './DeleteAlertDialog'
+import { formatDateTime } from '@/lib/date'
+import { EditDialog } from './EditDialog'
 
 const FuturesTransactionHistoryPage = () => {
   const [pagination, setPagination] = useState({
@@ -47,6 +49,9 @@ const FuturesTransactionHistoryPage = () => {
 
   const list = data?.list || []
   const total = data?.pagination.total || 0
+
+  const [editingTransaction, setEditingTransaction] =
+    useState<FuturesTransaction | null>(null)
 
   const columns: ColumnDef<FuturesTransaction>[] = [
     {
@@ -110,12 +115,29 @@ const FuturesTransactionHistoryPage = () => {
       header: '备注',
     },
     {
+      accessorKey: 'createdAt',
+      header: '创建时间',
+      cell: ({ row }) => formatDateTime(row.getValue('createdAt')),
+    },
+    {
+      accessorKey: 'updatedAt',
+      header: '更新时间',
+      cell: ({ row }) => formatDateTime(row.getValue('updatedAt')),
+    },
+    {
       accessorKey: 'tools',
       header: '操作',
       cell: ({ row }) => {
         const origin = row.original
         return (
-          <div className="flex justify-center  gap-x-1">
+          <div className="flex justify-center">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setEditingTransaction(origin)}
+            >
+              编辑
+            </Button>
             <DeleteAlertDialog futuresId={origin.id} />
           </div>
         )
@@ -238,6 +260,14 @@ const FuturesTransactionHistoryPage = () => {
           </Button>
         </div>
       </div>
+
+      {editingTransaction && (
+        <EditDialog
+          open={!!editingTransaction}
+          onOpenChange={(open) => !open && setEditingTransaction(null)}
+          transaction={editingTransaction}
+        />
+      )}
     </PageContainer>
   )
 }

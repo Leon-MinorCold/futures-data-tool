@@ -40,7 +40,7 @@ export function DeleteAlertDialog({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" size="sm">
+        <Button variant="ghost" size="sm" className="text-destructive">
           删除
         </Button>
       </AlertDialogTrigger>
