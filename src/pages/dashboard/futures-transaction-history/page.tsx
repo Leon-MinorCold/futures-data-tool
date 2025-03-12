@@ -35,6 +35,7 @@ import { futuresTransactionCalculation } from './utils'
 import { DeleteAlertDialog } from './DeleteAlertDialog'
 import { formatDateTime } from '@/lib/date'
 import { EditDialog } from './EditDialog'
+import DetailsDrawer from '@/pages/dashboard/futures-transaction-history/DetailsDrawer'
 
 const FuturesTransactionHistoryPage = () => {
   const [pagination, setPagination] = useState({
@@ -52,6 +53,9 @@ const FuturesTransactionHistoryPage = () => {
 
   const [editingTransaction, setEditingTransaction] =
     useState<FuturesTransaction | null>(null)
+  const [detailsData, setDetailsData] = useState<FuturesTransaction | null>(
+    null
+  )
 
   const columns: ColumnDef<FuturesTransaction>[] = [
     {
@@ -134,9 +138,9 @@ const FuturesTransactionHistoryPage = () => {
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => setEditingTransaction(origin)}
+              onClick={() => setDetailsData(origin)}
             >
-              编辑
+              详情
             </Button>
             <DeleteAlertDialog futuresId={origin.id} />
           </div>
@@ -268,6 +272,12 @@ const FuturesTransactionHistoryPage = () => {
           transaction={editingTransaction}
         />
       )}
+
+      <DetailsDrawer
+        detailsData={detailsData}
+        open={!!detailsData}
+        onOpenChange={(open) => !open && setDetailsData(null)}
+      />
     </PageContainer>
   )
 }
