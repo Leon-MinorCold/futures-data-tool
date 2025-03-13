@@ -33,6 +33,7 @@ export const useAllFuturesTransactions = (
         list,
       }
     },
+    refetchOnMount: true,
   })
 
   return {
@@ -68,6 +69,7 @@ export const usePaginatedFuturesTransactions = (
         pagination,
       }
     },
+    refetchOnMount: true,
   })
   return {
     data,

@@ -94,7 +94,6 @@ const EntryForm = () => {
     return _formData
   }
 
-  // Todo: 保存数据成功后，应该重置表单 以及回到第一步
   const onSaveDataSuccess = () => {
     resetStore()
   }
