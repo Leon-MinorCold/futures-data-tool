@@ -1,25 +1,27 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import PageContainer from '@/layout/page-container'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import BasisForm from '@/pages/dashboard/futures-transaction-tool/BasisForm'
 import { useFuturesTransactionStore, Tab } from '@/store/futuresTransaction'
 import EntryForm from '@/pages/dashboard/futures-transaction-tool/EntryForm'
 import ProfitForm from '@/pages/dashboard/futures-transaction-tool/ProfitForm'
-
+import Timer from './Timer'
+import { Helmet } from 'react-helmet-async'
 const FuturesTransactionToolPage = () => {
   const { tab, setTab, tabDisabledStatus } = useFuturesTransactionStore()
 
   return (
     <PageContainer>
+      <Helmet>
+        <title>期货交易系统</title>
+      </Helmet>
+
       <div className="container mx-auto">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               期货交易系统
-              <Badge variant="outline" className="ml-2">
-                2024年03月21日 14:30
-              </Badge>
+              <Timer />
             </CardTitle>
           </CardHeader>
 

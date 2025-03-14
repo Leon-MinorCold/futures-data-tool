@@ -56,7 +56,7 @@ export const usePaginatedFuturesTransactions = (
 ) => {
   const {
     data,
-    isLoading: loading,
+    isFetching: loading,
     error,
     refetch,
   } = useQuery({

@@ -27,7 +27,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
-import { Icons } from '@/components/ui/icons'
 import PageContainer from '@/layout/page-container'
 import { usePaginatedFuturesTransactions } from '@/services/futures-transaction/transaction'
 import { FuturesTransaction } from '@/types/futures-transaction/futures-transaction'
@@ -36,6 +35,8 @@ import { DeleteAlertDialog } from './DeleteAlertDialog'
 import { formatDateTime } from '@/lib/date'
 import { EditDialog } from './EditDialog'
 import DetailsDrawer from '@/pages/dashboard/futures-transaction-history/DetailsDrawer'
+import { Spinner } from '@/components/ui/spinner'
+import { Helmet } from 'react-helmet-async'
 
 const FuturesTransactionHistoryPage = () => {
   const [pagination, setPagination] = useState({
@@ -142,6 +143,13 @@ const FuturesTransactionHistoryPage = () => {
             >
               详情
             </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setEditingTransaction(origin)}
+            >
+              编辑
+            </Button>
             <DeleteAlertDialog futuresId={origin.id} />
           </div>
         )
@@ -164,57 +172,63 @@ const FuturesTransactionHistoryPage = () => {
 
   return (
     <PageContainer>
-      <div className="rounded-md border mb-2">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} className="text-center">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
+      <Helmet>
+        <title>期货交易记录列表</title>
+      </Helmet>
 
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-center">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+      <Spinner loading={loading}>
+        <div className="rounded-md border mb-2">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} className="text-center">
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="text-center">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </Spinner>
 
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center space-x-4">

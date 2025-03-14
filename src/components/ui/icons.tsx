@@ -33,6 +33,7 @@ import {
   Info,
   UsersRound,
   UserRound,
+  Loader,
 } from 'lucide-react'
 
 export type Icon = LucideIcon
@@ -43,7 +44,7 @@ export const Icons = {
   login: LogIn,
   close: X,
   product: LucideShoppingBag,
-  spinner: Loader2,
+
   kanban: CircuitBoardIcon,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
@@ -93,4 +94,8 @@ export const Icons = {
   user: UserRound,
   userPen: UserPen,
   user2: UserCircle2Icon,
+
+  // layout
+  spinner: Loader2,
+  spinner2: Loader,
 }

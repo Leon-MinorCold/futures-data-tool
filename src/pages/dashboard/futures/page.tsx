@@ -14,6 +14,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { Helmet } from 'react-helmet-async'
 
 import PageContainer from '@/layout/page-container'
 import { usePaginatedFutures } from '@/services/futures/futures'
@@ -36,6 +37,7 @@ import { useState } from 'react'
 import { FuturesFormDialog } from '@/pages/dashboard/futures/FuturesFormDialog'
 import { DeleteAlertDialog } from './DeleteAlertDialog'
 import { formatDateTime } from '@/lib/date'
+import { Spinner } from '@/components/ui/spinner'
 
 const FuturesPage = () => {
   const [pagination, setPagination] = useState({
@@ -172,6 +174,9 @@ const FuturesPage = () => {
 
   return (
     <PageContainer>
+      <Helmet>
+        <title>期货数据列表</title>
+      </Helmet>
       <div className="flex flex-row-reverse mb-4">
         <Button
           size="sm"
@@ -185,56 +190,58 @@ const FuturesPage = () => {
         </Button>
       </div>
 
-      <div className="rounded-md border mb-2">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+      <Spinner loading={loading}>
+        <div className="rounded-md border mb-2">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </Spinner>
 
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center space-x-4">

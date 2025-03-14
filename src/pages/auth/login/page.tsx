@@ -48,7 +48,7 @@ const LoginPage = () => {
   return (
     <LoginLayout>
       <Helmet>
-        <title>Sign in to your account</title>
+        <title>登录账号</title>
       </Helmet>
       <div className="flex flex-col gap-6">
         <Card>

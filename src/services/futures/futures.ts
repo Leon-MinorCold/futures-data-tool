@@ -49,7 +49,7 @@ export const getPaginatedFutures = (
 export const usePaginatedFutures = (filters: getPaginatedFuturesDto) => {
   const {
     data,
-    isLoading: loading,
+    isFetching: loading,
     error,
     refetch,
   } = useQuery({
