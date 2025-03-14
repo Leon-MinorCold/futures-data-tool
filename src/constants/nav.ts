@@ -8,28 +8,28 @@ export const navItems: NavItem[] = [
     isActive: false,
     children: [],
   },
+  // {
+  //   title: 'Account',
+  //   url: '#',
+  //   icon: 'billing',
+  //   isActive: false,
+  //   children: [
+  //     {
+  //       title: 'Profile',
+  //       url: '/dashboard/profile',
+  //       icon: 'users',
+  //     },
+  //   ],
+  // },
   {
-    title: 'Account',
-    url: '#',
-    icon: 'billing',
-    isActive: false,
-    children: [
-      {
-        title: 'Profile',
-        url: '/dashboard/profile',
-        icon: 'users',
-      },
-    ],
-  },
-  {
-    title: 'Users',
+    title: '用户管理',
     icon: 'users',
     url: '/dashboard/users',
     isActive: false,
     permission: ['admin'],
   },
   {
-    title: 'Futures',
+    title: '期货相关',
     icon: 'employee',
     url: '#',
     isActive: false,
@@ -41,13 +41,13 @@ export const navItems: NavItem[] = [
         isActive: false,
       },
       {
-        title: 'Transaction Tool',
+        title: '交易系统',
         icon: 'employee',
         url: '/dashboard/futures-transaction-tool',
         isActive: false,
       },
       {
-        title: 'Transaction History',
+        title: '交易记录',
         icon: 'employee',
         url: '/dashboard/futures-transaction-history',
         isActive: false,
