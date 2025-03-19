@@ -8,10 +8,25 @@ type BreadcrumbItem = {
 
 // This allows to add custom title as well
 const routeMapping: Record<string, BreadcrumbItem[]> = {
-  '/dashboard': [{ title: 'Dashboard', link: '/dashboard' }],
-  '/dashboard/user-management': [
-    { title: 'Dashboard', link: '/dashboard' },
-    { title: 'User Management', link: '/dashboard/user-management' },
+  '/dashboard/overview': [
+    { title: '仪表盘', link: '/dashboard' },
+    { title: '总览', link: '/dashboard/overview' },
+  ],
+  '/dashboard/users': [
+    { title: '仪表盘', link: '/dashboard' },
+    { title: '用户管理', link: '/dashboard/users' },
+  ],
+  '/dashboard/futures': [
+    { title: '仪表盘', link: '/dashboard' },
+    { title: '期货数据管理', link: '/dashboard/futures' },
+  ],
+  '/dashboard/futures-transaction-tool': [
+    { title: '仪表盘', link: '/dashboard' },
+    { title: '期货交易系统', link: '/dashboard/futures-transaction-tool' },
+  ],
+  '/dashboard/futures-transaction-history': [
+    { title: '仪表盘', link: '/dashboard' },
+    { title: '期货交易记录', link: '/dashboard/futures-transaction-history' },
   ],
 }
 
